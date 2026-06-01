@@ -1,0 +1,27 @@
+5.4 GNSS Aldatma
+
+Elektronik Harp kapsamında gerçekleştirilen "GNSS Aldatma (Spoofing)", hedef alıcının konum, hız ve zaman (PVT) hesaplamalarını manipüle etmek amacıyla sahte uydu sinyallerinin üretilmesi ve yayınlanması işlemidir. RF Karıştırma (Jamming) işlemi hedefin uydularla bağlantısını kopararak "servis dışı" bırakmayı amaçlarken; GNSS Aldatma işlemi, hedefin sahte sinyallere kilitlenmesini sağlayarak onu fark ettirmeden yanlış konumlara, rotalara veya zaman dilimlerine yönlendirmeyi hedefler. Yarışma gereksinimleri doğrultusunda sistemimiz, Elektronik Destek (ED) biriminden bağımsız olarak veya ED'nin hedef konumu onaylamasıyla gerçek zamanlı sahte uydu sinyalleri üretebilmektedir.
+
+Sistem Mimarisi ve İşleyiş (Yazılım/Donanım Altyapısı):
+Bilişsel RF sistemimizin çok çekirdekli mimarisinde çalışan Aldatma Motoru, "target_type == GNSS_RECEIVER" koşulunun sağlanmasıyla tetiklenmektedir. Süreç, Yörünge Mekaniği Çözücü (Ephemeris) ve Gerçek Zamanlı I/Q Sentezleyici bileşenleri üzerinden algoritmik olarak şu adımlarla icra edilir:
+
+- Hedef Senaryo ve Koordinat Girişi: Sisteme, operatör tarafından hedefin saptırılmak istendiği sahte konum koordinatları (Enlem, Boylam, İrtifa) girilir. 
+- Güç Yönetimli Hizalama (Power Managed Alignment): Hedef alıcının anti-spoofing (aldatma tespit) alarmlarını tetiklememek için "Güç Yönetimli Hizalama" algoritması başlatılır. Sistem, gerçek uyduların yeryüzüne ulaşan sinyal gücüne çok yakın (düşük) bir TX gücüyle yayına başlar. Hedef alıcının takip döngülerinin (tracking loops) sahte sinyale kilitlenmesi sağlandıktan sonra, TX gücü yavaşça ve kademeli olarak artırılarak hedefin gerçek uydulardan koparılması ve tamamen sahte yayına esir edilmesi sağlanır.
+- Dinamik Kinematik Üretimi (Doppler Kaydırma): Sistemin sadece sabit bir konumda aldatma yapmasının ötesinde, sahte bir hareket (kinematik) yaratmak amacıyla sentezlenen I/Q verisi üzerine gerçek zamanlı "Doppler Kaydırma" uygulanır. Bu sayede hedef, hareket ettiğine inandırılır.
+
+GNSS Servisleri ve Karıştırma Desteği:
+Sistemimiz asgari gereksinim olan "GPS L1" servisine ek olarak, mimarimizde bulunan Gerçek Zamanlı I/Q Sentezleyici yeteneği sayesinde "GLONASS L1" ve "GALILEO E1" servisleri için de eşzamanlı aldatma sinyali üretebilecek kapasitede tasarlanmıştır. Aldatma stratejisi olarak; hedef alıcıyı ele geçirmek için kaba kuvvet karıştırma (brute-force jamming) yapıp alıcıyı düşürdükten sonra aldatma yapmak yerine, "Güç Yönetimli Hizalama" ile kesintisiz bir devralma (seamless takeover) tercih edilmiştir. Ancak taktiksel gereksinime göre, sistem operatör komutuyla aldatma öncesinde kısa süreli bir Spot Karıştırma (Jamming) uygulayarak hedef alıcının kilitlerini düşürebilir ve hemen ardından aldatma sinyaline geçiş yapabilir.
+
+Alternatif Yöntemler ile Karşılaştırma (Avantaj ve Dezavantajlar):
+Sistemimizde tercih edilen "Gerçek Zamanlı I/Q Sentezleme ve Güç Yönetimli Hizalama" yöntemi, geleneksel Meaconing (Kayıt ve Tekrar Yayınlama) veya Kaba Kuvvet Aldatma yöntemleriyle karşılaştırıldığında belirli tasarım ödünleşimlerine sahiptir:
+
+- Avantajlar: Meaconing yönteminde sadece kayıt anındaki sabit konum ve zaman verisi aktarılabilirken, sistemimizdeki Yörünge Mekaniği Çözücü (Ephemeris) sayesinde hedefe istenilen dinamik rota ve zaman verisi anlık olarak üretilebilir. Ayrıca, kaba kuvvet aldatma yöntemlerinin aksine, güç yönetimli hizalama stratejimiz hedef alıcılardaki "sinyal sıçraması" (signal jump) uyarılarını tetiklemeden hedefin sessizce ele geçirilmesini sağlar.
+- Dezavantajlar: Gerçek zamanlı ve çoklu takımyıldız (GPS, GLONASS, GALILEO) için I/Q sinyali sentezlemek, Meaconing yöntemine kıyasla işlemci (CPU) üzerinde çok yüksek bir matematiksel hesaplama yükü yaratır. Ayrıca, yörünge mekaniklerinin doğru hesaplanması için sistemin çok hassas bir zaman senkronizasyonuna sahip olması gerekmektedir.
+
+Arayüz Görselleri ve Akış Şemaları:
+(Not: İlgili akış şemaları ve arayüz ekran görüntüleri raporun bu bölümünde Şekil X.X referansları ile eklenecektir.)
+Geliştirilen Kullanıcı Arayüzü (GUI), Qt/C++ altyapısı kullanılarak operasyonel hızı artıracak asenkron yapıda tasarlanmıştır. Arayüzde "GNSS Aldatma" paneli altında:
+
+- Operatörün sahte rotayı veya sabit konumu harita üzerinden tıklayarak seçebildiği Koordinat Giriş Ekranı,
+- Hedefe basılacak olan sahte uyduların gökyüzü dizilimini (Skyplot) gösteren görselleştirme aracı,
+- "Güç Yönetimli Hizalama" algoritmasının anlık TX güç seviyesini gösteren durum çubuğu ve "Aldatmayı Başlat (TX)" butonu yer almaktadır.

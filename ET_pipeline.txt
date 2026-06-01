@@ -1,0 +1,221 @@
+================================================================================
+BİLİŞSEL RF SİSTEMİ - BAĞIMSIZ ELEKTRONİK TAARRUZ (ET) SİSİTEMİ MİMARİSİ (V1.2)
+ÖN KOŞUL: Elektronik Destek (ED) Pipeline'ı çalışmış ve hedef istihbaratını üretmiştir.
+DEĞİŞİKLİK NOTU (V1.1 → V1.2):
+  - [1] Analog Telsiz Aldatma (ET-MOD 3) modülünden Metinden Sese (TTS) adımı kaldırıldı.
+  - [2] Yapı tamamen Sesten Sese (STS) / Ses Dönüştürme (Voice Conversion) olarak güncellendi.
+  - [3] ET_Thread_3 görev tanımı sadece Sesten Sese (STS) sentez yükünü içerecek şekilde revize edildi.
+================================================================================
+
+[1] ED-ET KÖPRÜSÜ (DATA INGESTION) KATMANI
+Amaç: ED pipeline'ından gelen kesinleşmiş hedef istihbarat verilerini asenkron olarak
+(örn. Shared Memory veya ZeroMQ üzerinden) teslim almak.
+
+Girdi Veri Yapısı (ED'den Gelen İstihbarat):
+  struct TargetIntelligence {
+      uint64_t target_id;
+      double   center_freq;               // Örn: 433.92 MHz
+      double   bandwidth;                 // Örn: 25 kHz
+      int      modulation;                // AM, FM, DMR vb.
+      bool     is_fhss;                   // Hedef frekans atlıyor mu?
+      std::vector<float> voice_samples;   // Ham PCM örnekleri (normalize, -1.0 ile +1.0 arası)
+                                          // Gerekçe: std::string ham PCM için gereksiz kopyalama
+                                          // ve bellek tahsisi yaratır; float vektörü hem tip
+                                          // güvenli hem de paylaşımlı bellek üzerinde sıfır
+                                          // kopyayla (std::span veya shared_ptr ile) kullanılabilir.
+      int      target_type;               // GNSS, Analog Telsiz, FHSS Telsiz vb.
+  };
+
+Yapılacaklar:
+  1. İstihbarat verisi kuyruktan (queue) okunur.
+  2. Tehdit önceliklendirmesi yapılarak hedefin türüne göre ilgili ET modülü
+     (Spot, Arabakışlı, Spoofing vb.) tetiklenir.
+
+
+[2] TX (VERİCİ) DONANIM YÖNETİCİSİ KATMANI
+Amaç: HackRF'in Half-Duplex (Yarı-çift yönlü) doğasını yönetmek ve TX (Gönderim)
+modunu senkronize etmek.
+
+Durum Makinesi (TxState):
+  enum class TxState : int {
+      IDLE     = 0,   // Donanım boşta, ne TX ne RX
+      SENSING  = 1,   // RX modu aktif (Arabakışlı Dinleme Fazı)
+      JAMMING  = 2    // TX modu aktif (Karıştırma/Spoofing Fazı)
+  };
+  std::atomic<TxState> hw_state { TxState::IDLE };
+
+Race Condition Koruması:
+  - ET_Thread_2 (Jamming Engine), TX isteği göndermeden önce:
+      hw_state.compare_exchange_strong(expected=IDLE, desired=JAMMING)
+    veya
+      hw_state.compare_exchange_strong(expected=SENSING, desired=JAMMING)
+    işlemini atomik olarak gerçekleştirir.
+  - ET_Thread_4 (Hardware TX Control), RX moduna geçmeden önce:
+      hw_state.compare_exchange_strong(expected=IDLE, desired=SENSING)
+    işlemini bekler. JAMMING durumundayken RX geçişi engellenir.
+  - Durum geçiş şeması:
+      IDLE ──────────────────▶ SENSING  (Arabakışlı dinleme başlıyor)
+      SENSING ───────────────▶ JAMMING  (Hedef aktif, karıştırma başlıyor)
+      JAMMING ───────────────▶ IDLE     (Karıştırma bitti, beklemeye geçiliyor)
+      IDLE / SENSING ────────▶ JAMMING  (Spot veya FHSS karıştırma direkt başlıyor)
+
+Yapılacaklar:
+  1. HackRF TX modunda başlatılır (VGA ve TX Amplifier kazançları ayarlanır).
+  2. Farklı ET modüllerinden (Spoofing, Jamming) gelen I/Q buffer'ları tek bir çıkış
+     kuyruğunda birleştirilir. Kuyruk yazma işlemi hw_state == JAMMING koşuluna bağlıdır.
+  3. Donanımın yanmamasını sağlamak için Duty-Cycle (Çalışma döngüsü) ve
+     termal limitler izlenir.
+
+
+[3] ET-MOD 1: SÜREKLİ KARIŞTIRMA (SPOT JAMMING) MOTORU
+Amaç: Gelen hedef frekansı üzerinde 0-3 GHz aralığında dar bantlı, yüksek yoğunluklu
+bastırma uygulamak.
+Tetiklenme Koşulu: target_type == STANDARD_RADIO && mode == SPOT
+
+Yapılacaklar:
+  1. ED'den gelen `center_freq` değerine SDR kilitlenir.
+  2. Hedefin `bandwidth` değerini örtecek şekilde Gaussian Noise (Beyaz Gürültü)
+     veya CW (Sürekli Dalga) I/Q datası C++ üzerinde sentezlenir.
+  3. Çoklu hedef veya baraj karıştırma özellikleri kapalı tutularak, HackRF'in
+     tüm çıkış gücü bu tek hedefe basılır.
+
+
+[4] ET-MOD 2: ARABAKIŞLI (LOOK-THROUGH) KARIŞTIRMA MOTORU
+Amaç: Hedef kanalın aktif olup olmadığını TDD (Time-Division Duplexing) mantığıyla
+ms seviyesinde kontrol edip karıştırmak.
+Tetiklenme Koşulu: target_type == STANDARD_RADIO && mode == LOOK_THROUGH
+
+Yapılacaklar:
+  1. Dinleme Fazı (RX): hw_state, SENSING'e alınır. HackRF milisaniyeler (örn. 10 ms)
+     içinde RX moduna alınır, `center_freq` dinlenir. Enerji eşiği aşılmışsa
+     hedef aktif demektir.
+  2. Karıştırma Fazı (TX): Hedef aktifse hw_state atomik olarak JAMMING'e geçirilir,
+     HackRF TX moduna alınır yardımıyla 50-100 ms boyunca Spot Jamming basılır.
+  3. Hedef susana kadar RX-TX döngüsü hw_state durum makinesi üzerinden devam ettirilir.
+     Her geçiş std::atomic::compare_exchange_strong ile yarış koşulundan korunur.
+
+
+[5] ET-MOD 3: ANALOG TELSİZ ALDATMA (VOICE DECEPTION) MOTORU
+Amaç: ED tarafından yakalanıp kaydedilen sesin karakteristiğini taklit ederek,
+operatörün mikrofondan girdiğine benzer şekilde Sesten Sese (STS) gerçek zamanlı sahte yayın üretmek.
+Tetiklenme Koşulu: target_type == ANALOG_VOICE
+
+Bileşenler:
+  - Pre-trained ONNX Ses Dönüştürücü / Sentezleyici (Voice Conversion C++ API)
+  - Çift Tampon (Double Buffer) Mekanizması
+
+Çift Tampon Yapısı:
+  Sorun: ONNX inference (çıkarım) süresi, tek tampon kullanıldığında AM/FM modülasyon adımının
+  gerisinde kalabilir ve TX sürekliliği bozulabilir.
+
+  Çözüm — Üretici/Tüketici Çift Tampon:
+    struct VoiceDoubleBuffer {
+        std::array<std::vector<float>, 2> pcm_buf;  // iki PCM tamponu
+        std::atomic<int> write_idx { 0 };            // ONNX inference burada yazar
+        std::atomic<int> read_idx  { 1 };            // AM/FM modülatör buradan okur
+        std::atomic<bool> buf_ready[2] { false, false };
+    };
+
+  Akış:
+    ET_Thread_3 (Deception Engine — Üretici):
+      1. pcm_buf[write_idx] üzerine ONNX inference (Ses Dönüşüm) sonucu yazılır.
+      2. buf_ready[write_idx] = true yapılır.
+      3. write_idx, 1-write_idx ile değiştirilir (0↔1 döngüsü).
+
+    ET_Thread_4 (Hardware TX Control — Tüketici):
+      1. buf_ready[read_idx] == true beklenir.
+      2. pcm_buf[read_idx] AM/FM modüle edilerek I/Q formatına çevrilir.
+      3. HackRF TX tamponu beslenir.
+      4. buf_ready[read_idx] = false, read_idx = 1-read_idx ile serbest bırakılır.
+
+  Bu sayede ONNX inference ve AM/FM modülasyon paralel yürür; biri yazarken
+  diğeri okur ve TX zinciri hiç boşa düşmez.
+
+Yapılacaklar:
+  1. ED'den gelen `voice_samples` (std::vector<float>) ONNX modeline kaynak referans
+     ses olarak beslenir (Düşman operatörün Tını/Vurgu öznitelik çıkarımı).
+  2. Operatörün sistem mikrofonundan okuduğu temiz ses girdisi, ONNX Ses Dönüşüm (STS)
+     modeli vasıtasıyla dinamik olarak düşman operatörün tınısına dönüştürülür.
+  3. Üretilen hedef karakterindeki sahte PCM ses verisi Çift Tampon üzerinden AM/FM modüle
+     edilerek I/Q formatına çevrilir.
+  4. HackRF üzerinden hedefin `center_freq` değerinde havaya basılır.
+
+
+[6] ET-MOD 4: GNSS ALDATMA (SPOOFING) MOTORU
+Amaç: ED'den bağımsız olarak veya ED'nin hedef konumu onaylamasıyla gerçek zamanlı
+sahte uydu sinyali üretmek.
+Tetiklenme Koşulu: target_type == GNSS_RECEIVER
+
+Bileşenler:
+  - Yörünge Mekaniği Çözücü (Ephemeris)
+  - Gerçek zamanlı I/Q Sentezleyici (GPS L1, GLONASS L1, GALILEO E1)
+
+Yapılacaklar:
+  1. Sisteme operatör tarafından sahte bir hedef koordinat (Lat/Lon/Alt) girilir.
+  2. "Güç Yönetimli Hizalama" algoritması başlatılır: Gerçek uyduların gücüne çok
+     yakın bir TX gücüyle başlanıp kilitlenme sağlandıktan sonra güç yavaşça artırılır.
+  3. Sahte bir hareket (kinematik) yaratmak için I/Q datası üzerine
+     "Doppler Kaydırma" uygulanır.
+
+
+[7] ET-MOD 5: BİLİŞSEL FHSS TAKİP VE AKILLI KARIŞTIRMA MOTORU
+Amaç: Frekans atlayan hedeflerin örüntüsünü tahmin edip, hedef frekansa atlamadan
+hemen önce o kanalda karıştırmaya başlamak.
+Tetiklenme Koşulu: is_fhss == TRUE
+
+Bileşenler:
+  - Çevrimiçi Kural/Matris Tabanlı Tahmin Algoritması (Online Q-Table veya
+    Transition Matrix — Markov Zinciri benzeri)
+
+Yapılacaklar:
+  1. ED pipeline'ından gelen geçmiş frekans atlama zaman damgaları (hop sequence)
+     matrise dizilir.
+  2. Model ağır bir eğitim yapmadan istatistiksel geçiş olasılıklarını hesaplar.
+  3. Sistem, hedefin bir sonraki `center_freq` değerini tahmin eder.
+  4. Hedef o frekansa geçmeden hemen önce hw_state JAMMING'e alınır, HackRF o
+     frekansa ayarlanır ve TX başlatılır. Düşuk enerji harcayarak hedef ağ düşürülür.
+
+
+================================================================================
+ET PIPELINE THREADING MİMARİSİ (BAĞIMSIZ 4 ÇEKİRDEK)
+================================================================================
+
+ET_Thread_1 (Bridge & Orchestrator):
+  ED'den gelen Shared Memory verisini okur, parse eder ve tehdit türüne göre
+  ilgili görev thread'ini tetikler.
+
+ET_Thread_2 (Jamming Engine):
+  Spot, Arabakışlı (TDD geçişleri) ve Bilişsel FHSS karıştırma I/Q sinyallerinin
+  matematiksel üretimini üstlenir.
+  TX isteği öncesi hw_state üzerinde compare_exchange_strong çağırır.
+
+ET_Thread_3 (Deception Engine):
+  YZ tabanlı ONNX Sesten Sese (STS) dönüşüm (Analog Aldatma) ve C++ GNSS I/Q sentezi
+  işlemlerinin ağır hesaplamalarını yapar.
+  Analog Aldatma çıkışını VoiceDoubleBuffer'ın write_idx tarafına yazar.
+
+ET_Thread_4 (Hardware TX Control):
+  HackRF'e gönderilecek I/Q verilerini libhackrf üzerinden donanıma yazar.
+  TX/RX anahtarlamasını hw_state durum makinesine göre yönetir (TDD için).
+  Analog Aldatma çıkışını VoiceDoubleBuffer'ın read_idx tarafından okur ve
+  AM/FM modülasyonunu uygular.
+
+================================================================================
+ÖZET DEĞİŞİKLİK TABLOSU (V1.1 → V1.2)
+================================================================================
+
+  #  | Konum                         | Değişiklik
+  ---+-------------------------------+------------------------------------------
+  1  | Analog Aldatma Motoru [5]     | Metinden Sese (TTS) işlevselliği kaldırıldı.
+     |                               | Süreç sadece asenkron Sesten Sese (STS) /
+     |                               | Ses Dönüştürme (Voice Conversion) olarak yapılandırıldı.
+  ---+-------------------------------+------------------------------------------
+  2  | ET_Thread_3 Tanımı            | ONNX iş yükü sadece mikrofondan gelen sesin
+     |                               | hedef ses karakteristiğine klonlanmasıyla sınırlandı.
+
+================================================================================
+SONUÇ:
+Bu revizyonla birlikte text-to-speech işlem hattının getirdiği ek kütüphane bağımlılığı 
+ve işlem yükü elenmiş, sistem doğrudan taktik sahada mikrofondan alınan sesin anlık 
+klonlanarak hedefe basılması mantığıyla daha hafif (lightweight) hale getirilmiştir.
+================================================================================

@@ -1,0 +1,108 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Sayfa-1" id="agNjPY2jojy5Ft-3DbFP">
+    <mxGraphModel dx="1449" dy="799" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-7" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" target="bR8gxeDEJL2Ic5kN7742-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-1" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#009900,#009900);" value="&lt;span data-path-to-node=&quot;3,1,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,1,1,0&quot; data-index-in-node=&quot;23&quot;&gt;Başlat: ED Katmanından İstihbarat Alındı&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;3,1,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;4&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="100" width="220" x="140" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-10" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="bR8gxeDEJL2Ic5kN7742-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Referans Çıkarımı: ED&#39;den gelen voice_samples (std::vector&amp;lt;float&amp;gt;), ONNX modeline beslenerek düşman ses tınısı (speaker embedding) çıkarılır" vertex="1">
+          <mxGeometry height="100" width="250" x="125" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hayır" vertex="1">
+          <mxGeometry height="30" width="60" x="340" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-6" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="bR8gxeDEJL2Ic5kN7742-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-8" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="bR8gxeDEJL2Ic5kN7742-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-4" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;fillColor=light-dark(#CC6600,#CC6600);" value="&lt;span data-path-to-node=&quot;3,4,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,4,1,0&quot; data-index-in-node=&quot;23&quot;&gt;Target_type == ANALOG_VOICE ?&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;3,4,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;5&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="130" width="160" x="170" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-5" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#CC0000,#CC0000);" value="&lt;span data-path-to-node=&quot;3,1,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,1,1,0&quot; data-index-in-node=&quot;23&quot;&gt;Süreci Sonlandır&lt;/code&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="90" width="150" x="450" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-12" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="bR8gxeDEJL2Ic5kN7742-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-9" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;fillColor=light-dark(#6600CC,#6600CC);" value="Mikrofon: Operatör sistem üzerinden temiz ses girdisi sağlar" vertex="1">
+          <mxGeometry height="60" width="440" x="30" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-20" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="bR8gxeDEJL2Ic5kN7742-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="STS Dönüşüm: YZ tabanlı ONNX modeli ile operatör sesi, eşzamanlı olarak düşman tınısına dönüştürülür" vertex="1">
+          <mxGeometry height="90" width="250" x="125" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Üretici: Dönüştürülen PCM verisi pcm_buf[write_idx] üzerine yazılır ve buf_ready[write_idx] = true olarak işaretlenir" vertex="1">
+          <mxGeometry height="90" width="250" x="125" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-17" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="bR8gxeDEJL2Ic5kN7742-18">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="470" y="1005" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-14" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;fillColor=light-dark(#CC6600,#CC6600);" value="&lt;span data-path-to-node=&quot;3,4,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,4,1,0&quot; data-index-in-node=&quot;23&quot;&gt;buf_ready[read_idx] == true mi?&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;3,4,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;5&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="130" width="255" x="122.5" y="940" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-15" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="bR8gxeDEJL2Ic5kN7742-14">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="253" y="1090" />
+              <mxPoint x="20" y="1090" />
+              <mxPoint x="20" y="1005" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hayır(Bir süre bekle)" vertex="1">
+          <mxGeometry height="30" width="120" x="50" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-24" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="bR8gxeDEJL2Ic5kN7742-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="&lt;span data-path-to-node=&quot;7,5,1,0&quot;&gt;&lt;code data-path-to-node=&quot;7,5,1,0&quot; data-index-in-node=&quot;23&quot;&gt;Tüketici: pcm_buf[read_idx] okunarak AM/FM modüle edilir ve I/Q formatına çevrilir&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;7,5,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;13&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="250" x="560" y="975" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-19" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;dashPattern=1 4;" target="bR8gxeDEJL2Ic5kN7742-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-23" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="bR8gxeDEJL2Ic5kN7742-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="&lt;span data-path-to-node=&quot;7,5,1,0&quot;&gt;&lt;code data-path-to-node=&quot;7,5,1,0&quot; data-index-in-node=&quot;23&quot;&gt;İletim (TX): HackRF üzerinden sahte I/Q verisi center_freq frekansında yayına sokulur&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;7,5,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;13&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="250" x="560" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="&lt;span data-path-to-node=&quot;7,11,1,0&quot;&gt;&lt;code data-path-to-node=&quot;7,11,1,0&quot; data-index-in-node=&quot;23&quot;&gt;Tampon Temizliği: buf_ready[read_idx] = false yapılır ve read_idx = 1 - read_idx ile serbest bırakılır&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;7,11,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;15&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="80" width="250" x="560" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-25" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Evet" vertex="1">
+          <mxGeometry height="30" width="50" x="389" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-27" edge="1" parent="1" source="bR8gxeDEJL2Ic5kN7742-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.814;entryY=0.308;entryDx=0;entryDy=0;entryPerimeter=0;" target="bR8gxeDEJL2Ic5kN7742-14">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="480" y="790" />
+              <mxPoint x="480" y="920" />
+              <mxPoint x="330" y="920" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-28" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Bayrak (Flag) / Tetikleme" vertex="1">
+          <mxGeometry height="30" width="140" x="109" y="899" as="geometry" />
+        </mxCell>
+        <mxCell id="bR8gxeDEJL2Ic5kN7742-29" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Evet" vertex="1">
+          <mxGeometry height="30" width="60" x="249" y="310" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

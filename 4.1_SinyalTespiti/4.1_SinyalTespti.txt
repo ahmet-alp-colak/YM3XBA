@@ -1,0 +1,55 @@
+4.1 Sinyal Tespiti
+RF spektrumdan sinyal tespiti, elektromanyetik ortamda gürültü tabanını aşan kararlı yayınların algılanarak varlıklarının ortaya konulmasıdır. Potansiyel tehdit unsurlarının elektromanyetik faaliyetlerine ilişkin ilk farkındalık aşaması olan bu görev, Bilişsel RF Spektrum Haritalama Sistemi içerisinde denetimsiz makine öğrenmesi ve istatistiksel zaman serisi analizi ile gerçekleştirilmektedir. Bu bölümde, ham IQ verisinden başlayarak otonom karar mekanizmasına kadar uzanan endüstriyel seviye Elektronik Destek (ED) tespit mimarisi detaylandırılmıştır.  
+
+4.1.1 Kesintisiz Veri Akışı ve Donanım İletişimi
+Sistem, HackRF donanımı kullanarak 1 MHz ile 6 GHz arasındaki elektromanyetik spektrumu 10 MHz'lik adımlarla taramaktadır.  
+Donanım üzerinden saniyede 20 milyon örnek (20 MSPS) hızında ham IQ veri akışı sağlanmaktadır.  
+Frekans tarama işlemi sırasında (Sweep), donanıma frekans değiştirme emri verildikten sonra PLL (Faz Kilitli Döngü) kilitlenmesi ve analog filtrelerin fiziksel olarak oturması için 40 milisaniyelik bir bekleme süresi uygulanır.  
+Gerçek zamanlı sinyal işlemenin darboğaz yaratmaması ve işletim sisteminin kilitlenmemesi (mutex-free) amacıyla, gelen IQ verileri SPSC (Single-Producer Single-Consumer) Lock-Free Ring Buffer (Kilit İçermeyen Kuyruk) yapısına aktarılır.  
+İşlemcinin veri yüküne yetişemediği durumlarda programın çökmesini engellemek için, Lock-Free yapısı en eski veriyi sessizce düşürerek bellek taşmasını önler.  
+
+4.1.2 Sinyal İşleme Katmanı (Welch PSD)
+Klasik FFT analizlerindeki anlık güç dalgalanmaları ve gürültü sıçramaları, yanlış alarm oranını (False Alarm Rate) artırır. Bu nedenle sistemde spektral analizi kararlı hale getirmek için Welch Metodu (Welch's Method) kullanılmaktadır.
+IQ verisi tek bir büyük blok olarak değil, %50 oranında üst üste bindirilmiş (overlap) 1024'lük parçalara bölünerek işlenir.  
+Spektral sızıntıları (leakage) önlemek ve keskin sinyal kopmalarını yumuşatmak için her alt bloğa Hamming penceresi (Hamming Window) uygulanır.  
+FFTW3 kütüphanesi kullanılarak her dilim frekans uzayına çevrilir ve gücü hesaplanır; daha sonra tüm dilimlerin ortalaması alınarak temiz bir Güç Spektral Yoğunluğu (PSD) elde edilir.  
+Zaman domeninde milisaniyelik patlamalar şeklinde yayın yapan (Wi-Fi, Bluetooth vb.) anlık sinyalleri kaçırmamak için alt blok varyansları (sub-block variances) ayrıyeten hesaplanır ve loglanır.  
+Matematiksel olarak uygulanan Welch ortalaması şu şekilde ifade edilir:
+P_Welch(k) = (1/M) * toplam(m=0 to M-1) | FFT{ x_m(n) * w(n) } |^2
+
+4.1.3 Çok Boyutlu Özellik Çıkarımı (Feature Engineering)
+Yapay zekâ modelinin ortamdaki sinyalleri sadece "güç (dB)" değerine göre değil, istatistiksel karakterine göre tanıyabilmesi için spektrumdan güce duyarsız (scale-invariant) 8 boyutlu bir özellik vektörü (Feature Vector) çıkarılır. Bu vektördeki özellikler şunlardır:  
+- Spektral Entropi: Gürültü kaotiktir (yüksek entropi), gerçek sinyal ise bilgi içerdiği için daha düzenlidir (düşük entropi).  
+- Spektral Flatness: Sinyalin enerjisinin spektruma yayılım durumunu (dar veya geniş bantlılık) ölçer.  
+- Crest Factor: Anlık tepe gücünün sinyalin ortalamasına oranını ifade eder.  
+- Skewness (Çarpıklık): Sinyal enerjisinin dağılım asimetrisini çıkarır.  
+- Kurtosis (Basıklık): Dağılımın kuyruk kalınlığını karakterize eder.  
+- Micro-Variance: Milisaniyelik zaman dilimindeki enerji dalgalanmasını tespit ederek patlamalı sinyalleri yakalar.  
+- Relative Power & Normalized Frequency: Sinyalin normalize edilmiş ortalama gücünü ve 1 MHz - 6 GHz bandındaki konumunu belirler.  
+
+4.1.4 GMM Tabanlı Denetimsiz Öğrenme ve Anomali Tespiti
+Sistemin bulunduğu çevresel RF karakteristiğini (kentsel gürültü, taktik saha arka planı vb.) kendi kendine öğrenmesi için OpenCV tabanlı denetimsiz bir Gaussian Mixture Model (GMM) kullanılmaktadır.
+Sistem spektrumu öğrenmek amacıyla 8 farklı küme (components) kullanır ve ortamdan 2000 geçerli örnek toplar.  
+GMM eğitim aşamasında kovaryans matrislerinin çökmesini (Singularity/Underflow) engellemek için Tekil Değer Ayrışımı (SVD) kullanılarak model matematiksel olarak kararlı hale getirilir.  
+İşlemci yükünü hafifletmek ve hız kazanmak adına ters kovaryanslar ve logaritmik determinantlar önceden hesaplanarak bellekte tutulur.  
+Gelen her yeni sinyalin 8 boyutlu özellik vektörü Mahalanobis uzaklığı üzerinden değerlendirilerek, o anki çevresel modele ait olma olasılığı (Log-Likelihood) hesaplanır.  
+Öğrenilmiş tüm GMM matrisleri rf_scene_model.xml dosyasına kaydedilir ve sistem yeniden başlatıldığında eğitim aşaması atlanarak doğrudan tespit (avlanma) işlemine geçilir.  
+
+4.1.5 Karar Mekanizması ve Adaptif Gürültü Eşiği
+Anlık tespit kararları, sistemin "Zaman Hafızası" (Temporal State) yapısı üzerinden yürütülür. Sabit eşiklerin (Constant Threshold) yarattığı hataları aşmak için her frekansa ait istatistiksel bir gürültü profili çıkarılır.
+Her frekans kanalı için ölçülen son 100 olabilirlik (Log-likelihood) değeri hafızada tutulur.  
+Ortalama hesaplamalarının anlık patlamalardan (outliers) etkilenmesini önlemek amacıyla, dayanıklı istatistik yöntemleri olan Medyan ve Medyan Mutlak Sapma (MAD) hesaplanarak frekansın adaptif gürültü tabanı (adaptive_noise_floor) ve gürültü sapması (adaptive_noise_sigma) bulunur.  
+Sinyallerin olasılık puanları EMA (Üstel Hareketli Ortalama) filtresinden geçirilerek zaman içerisindeki tutarlılığı sağlanır.  
+Hesaplanan olasılık puanı, adaptif gürültü eşikleriyle kıyaslanarak sinyaller üç ana sınıfa ayrılır:
+- Olasılık puanı ortama uyumlu (yüksek) ise bu durum normal arka plan gürültüsü (Sınıf 0) olarak işaretlenir.  
+- Puan ortalamadan düşük ancak arada sırada görülüyorsa, sinyal Burst/Anlık (Sınıf 1) olarak değerlendirilir.  
+- Puan çok düşük ve EMA sonrası sürekli kalıcılık gösteriyorsa, doluluk oranı (occupancy) yükselir ve Sürekli Sinyal (Sınıf 2) alarmı üretilir.  
+MAD (Medyan Mutlak Sapma) algoritmasının kullanıldığı adaptif sapma formülü:
+MAD = median( |Xi - median(X)| )
+sigma_adaptif = 1.4826 * MAD
+
+4.1.6 Alternatif Yöntemler ve Karşılaştırmalı Analiz
+Geliştirilen "SPSC Lock-Free + Welch PSD + GMM" mimarisi, geleneksel sistemlerle karşılaştırıldığında belirgin operasyonel üstünlükler sunar:
+- Enerji Algılama (Energy Detection): En yaygın ve donanım maliyeti en düşük yöntemdir. Sabit bir dBm eşiği üzerinden karar verir. Ancak kentsel bölgelerdeki değişken gürültü (Noise Floor) seviyelerinde ya da frekans atlamalı (FHSS) jammer saldırılarında "Sürekli Alarm" durumuna geçerek tamamen körleşir. Kurulan yapay zekâ destekli MAD algoritması, dinamik gürültü tabanına adapte olarak bu zafiyeti tamamen engeller.
+- Devirsel-Durağan Özellik Algılama (Cyclostationary Detection): Gürültü altı ve çok düşük SNR'lı sinyallerin tespitinde literatürdeki en başarılı metottur. Ancak 1 MHz - 6 GHz gibi son derece geniş bir bandın 20 MSPS hızında gerçek zamanlı (real-time) taranması durumunda işlemci (CPU) darboğazı yaratır.
+- Önerilen Bilişsel Mimari (Cognitive RF GMM): Klasik enerji eşiği yönteminin hızına sahipken, makine öğrenmesi sayesinde karmaşık tespit yeteneği sunar. Sinyalleri sadece güç ile değil (Feature 7) entropi ve basıklık gibi istatistiksel geometrileriyle (Feature 1-5) tanıdığı için kamufle edilmiş elektronik taarruz faaliyetlerini dahi spektral ortam dokusundaki "matematiksel anormallik" (Log-Likelihood düşüşü) olarak tespit edebilmektedir. Sistemin tek dezavantajı olan "İlk Eğitim (Cold Start)" zorunluluğu ise, XML tabanlı model kalıcılık (Persistence) katmanı sayesinde bertaraf edilmiştir.

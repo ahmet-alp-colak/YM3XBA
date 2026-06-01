@@ -1,0 +1,24 @@
+5. ET GÖREVLERİ VE EKRAN GÖRSELLERİ
+
+5.1 Sürekli Karıştırma
+
+Haberleşme Elektronik Taarruz (ET) kapsamında gerçekleştirilen “RF Karıştırma”, Tehdit Göndermeç ve Hedef Alıcı birimleri arasındaki haberleşmeyi kesmek, engellemek veya geciktirmek amacıyla uygulanan kritik bir karşı-tedbir tekniğidir. "Sürekli Karıştırma" görevimiz kapsamında, karıştırma işlemi süresince herhangi bir almaç (RX) desteği veya spektrum dinlemesi gerçekleştirilmemektedir. Sistemimizde bu işlem, operatörün arayüz üzerinden verdiği komut ile başlatılmakta, belirlenen frekansta kesintisiz (Continuous) olarak sürdürülmekte ve yine operatör müdahalesi veya önceden tanımlanmış zamanlayıcı (süreli sonlandırma) aracılığıyla sonlandırılmaktadır.
+
+Sistem Mimarisi ve İşleyiş (Yazılım/Donanım Altyapısı):
+Sürekli karıştırma görevi, Bilişsel RF pipeline mimarimizde Elektronik Destek (ED) katmanından gelen istihbarat verilerini asenkron olarak işleyen çok çekirdekli yapının "ET_Thread_2 (Jamming Engine)" birimi tarafından yürütülmektedir. Sistemde "target_type == STANDARD_RADIO" ve operatör modunun "mode == SPOT" durumunda olması bu motoru tetikler.
+Süreç teknik olarak şu adımlarla icra edilir:
+* Frekans Kilitlenmesi: ED katmanından elde edilen hedefin merkez frekansına (center_freq) SDR (HackRF) donanımı kilitlenir.
+* Sinyal Sentezleme: Hedefin bant genişliğini (bandwidth) tam olarak örtecek karakteristikte "Gaussian Noise" (Beyaz Gürültü) veya isteğe bağlı olarak "CW" (Sürekli Dalga) I/Q verisi, C++ ortamında matematiksel olarak sentezlenir.
+* Donanım Yönetimi ve Senkronizasyon: Çoklu thread yapısında donanım çakışmalarını (Race Condition) önlemek amacıyla std::atomic tabanlı durum makinesi (TxState) geliştirilmiştir. Sistem, karıştırma başlatıldığında IDLE veya SENSING durumundan JAMMING durumuna compare_exchange_strong metodu ile güvenli ve atomik bir şekilde geçiş yapar.
+* İletim (TX): Sentezlenen baz bant I/Q verileri, "ET_Thread_4 (Hardware TX Control)" iş parçacığı üzerinden libhackrf kütüphanesi çağrılarıyla SDR donanımına aktarılarak yayına sokulur.
+
+Karıştırma Tipleri ve Sınırlamalar:
+Sistemimiz, 0–3 GHz frekans bandında görev yapabilmekte olup, donanımın TX gücünü maksimum verimle kullanabilmek adına spesifik olarak tekli (spot) karıştırma mimarisine göre tasarlanmıştır. 
+* Desteklenen Tip: Tekli (Spot) Karıştırma. 
+* Sınırlamalar: Sistemimizde "Çoklu (Multi-target)" ve "Baraj (Barrage)" karıştırma özellikleri bilinçli olarak desteklenmemektedir[cite: 1225]. Toplam hedeflenebilecek kaynak kapasitesi anlık olarak 1 (bir) ile sınırlandırılmıştır. 
+
+Alternatif Yöntemler ile Karşılaştırma (Avantaj ve Dezavantajlar):
+Sistemimizde seçilen "Spot Karıştırma" yöntemi, Çoklu ve Baraj karıştırma alternatifleriyle karşılaştırıldığında belirli tasarım ödünleşimlerine sahiptir:
+* Avantajlar: Baraj karıştırma yönteminde HackRF'in sınırlı olan RF çıkış gücü çok geniş bir frekans bandına yayıldığı için birim Hz başına düşen güç yoğunluğu ciddi oranda düşmektedir. Spot karıştırmada ise tüm donanımsal kazanç (VGA/TX Amplifier), dar bir hedefin spesifik bant genişliğine (Örn: 25 kHz) odaklandığından, hedefin Haberleşme İşaret-Gürültü (SNR) oranını bozma başarısı ve efektif karıştırma menzili çok daha yüksektir. 
+* Dezavantajlar: Hedefin spektrumda frekans atlaması (FHSS) durumunda veya eşzamanlı olarak bastırılması gereken birden fazla hedefin ortaya çıkması durumunda, sistem o an sadece tek bir frekansa kilitli kaldığı için diğer frekanslardaki yayınlara müdahale edemez. (Bu spesifik kısıt, sistemimizdeki "Arabakışlı Karıştırma" ve "Bilişsel FHSS Karıştırma" motorlarıyla aşılmaktadır.)
+

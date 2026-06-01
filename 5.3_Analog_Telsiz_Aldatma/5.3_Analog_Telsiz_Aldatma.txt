@@ -1,0 +1,27 @@
+5.3 Analog Telsiz Aldatma
+
+Haberleşme ET kapsamında gerçekleştirilen "Aldatma," hedef haberleşme sistemine ait sinyallerin taklit edilmesi, değiştirilmesi veya yeniden üretilmesi yoluyla, sistemin hatalı karar vermesine veya yanlış bilgi üretmesine neden olan bir elektronik taarruz tekniğidir. Hedef haberleşme sisteminin frekans, zamanlama ve modülasyon/protokol özelliklerine uygun üretilen sahte sinyallerle sistemin gerçek dışı yayınları geçerli kabul etmesi sağlanır. RF Karıştırma ile hedef alıcının "hiç duymaması" hedeflenirken, RF Aldatma ile "yanlış duyması" hedeflenir. Yarışma kapsamında, bu görev adımı sadece, ses ile haberleşen analog amatör telsizler için gerçekleştirilecektir.
+
+Sistem Mimarisi ve İşleyiş (Yazılım/Donanım Altyapısı):
+Bilişsel RF sistemimizde "Analog Telsiz Aldatma" görevi, ED tarafından yakalanıp kaydedilen sesin karakteristiğini taklit ederek sahte emirler yayınlamak amacıyla "ET_Thread_3 (Deception Engine)" tarafından yürütülmektedir. Sistem, "target_type == ANALOG_VOICE" koşulunun sağlanmasıyla tetiklenir. Süreç, Yapay Zekâ (YZ) tabanlı Sesten Sese (STS) ses dönüşümü ve kesintisiz iletim (TX) olmak üzere yazılım ve donanım bütünlüğünde şu algoritmik adımlarla icra edilir:
+
+- Ön Hazırlık (Referans Ses Çıkarımı): ED katmanından elde edilen hedef sinyale ait ham ses verisi ("voice_samples" std::vector<float> formatında), C++ API üzerinde çalışan Pre-trained ONNX Ses Dönüştürücü modeline referans olarak beslenir. Bu sayede düşman operatörün tını ve vurgu özellikleri (speaker embedding) çıkarılır.
+- Yapay Zekâ (YZ) ile Dönüştürme: Operatörün sistem mikrofonundan okuduğu temiz ses girdisi, ONNX Ses Dönüşüm (STS) modeli vasıtasıyla dinamik olarak düşman operatörün tınısına dönüştürülür (Voice Conversion). Ağır hesaplama gerektiren bu işlem "ET_Thread_3" üzerinde gerçekleştirilir.
+- Çift Tampon (Double Buffer) Mekanizması: ONNX inference (çıkarım) süresinin AM/FM modülasyon adımının gerisinde kalarak TX sürekliliğini bozmasını (stuttering) engellemek amacıyla "VoiceDoubleBuffer" yapısı kullanılır.
+  * Üretici ("ET_Thread_3"): Dönüştürülen PCM sonuçlarını "pcm_buf[write_idx]" üzerine yazar ve ilgili tamponu "buf_ready[write_idx] = true" olarak işaretler.
+  * Tüketici ("ET_Thread_4"): "read_idx" üzerinden ilgili PCM verisini okur ve donanım kontrolünden sorumludur.
+  * Bu "0↔1" okuma/yazma döngüsü sayesinde ONNX çıkarımı ile AM/FM modülasyonu paralel yürütülür ve TX zinciri hiç boşa düşmez.
+- İletim (TX): Üretilen sahte PCM ses verisi, "ET_Thread_4" üzerinden AM/FM modüle edilerek I/Q formatına çevrilir. Ardından, HackRF donanımı üzerinden hedefin merkez frekansında ("center_freq") TX edilir.
+
+Alternatif Yöntemler ile Karşılaştırma (Avantaj ve Dezavantajlar):
+Sistemimizde tercih edilen "YZ Tabanlı Sesten Sese Dönüşüm (Voice Conversion)", geleneksel "Ses Kaydı Tekrarı (Replay Attack)" veya basit ses perdesi değiştirme (Pitch Shifting) alternatifleriyle karşılaştırıldığında belirli tasarım ödünleşimlerine sahiptir:
+
+- Avantajlar: Basit tekrar saldırılarında yalnızca daha önce kaydedilmiş cümleler kullanılabilirken, tasarladığımız sistem YZ yeteneği sayesinde operatörün mikrofondan anlık olarak söylediği taktiksel duruma uygun dinamik ve yepyeni komutları düşman sesiyle eş zamanlı olarak üretebilmesini sağlar. Ayrıca entegre edilen çift tampon (double buffer) mekanizması ile ONNX işlem yükünün yaratabileceği donmalar engellenmiş, TX sürekliliği güvence altına alınmıştır.
+- Dezavantajlar: YZ tabanlı ONNX inference işlemleri, standart bir ses dosyasını oynatmaya (Replay Attack) kıyasla çok daha yüksek işlemci (CPU) gücü gerektirir ve bellek tüketimini artırır. Ayrıca modelin referans ses tınısını doğru kopyalayabilmesi için ED tarafından yakalanan ses örneklerinin belirli bir kalitenin (SNR) üzerinde olması gerekmektedir.
+
+Arayüz Görselleri ve Akış Şemaları:
+(Not: İlgili akış şemaları ve arayüz ekran görüntüleri raporun bu bölümünde Şekil X.X referansları ile eklenecektir.)
+Geliştirilen Kullanıcı Arayüzü (GUI), Qt/C++ altyapısı kullanılarak asenkron yapıda tasarlanmıştır. Arayüzde "Analog Aldatma" paneli altında:
+- ED'den gelen referans sesin spektrogramını gösteren analiz ekranı,
+- Operatörün kendi sesini kaydederek anlık dönüştürebilmesi için "Sesten Sese (STS)" mikrofon kayıt butonu,
+- Hazırlanan paketi yayına sokmak için "Aldatmayı Başlat (TX)" butonu yer almaktadır.

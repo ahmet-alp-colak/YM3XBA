@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+sdrenv/
+venv/
+*.bin
+*.wav
+*.raw
+dataset*/

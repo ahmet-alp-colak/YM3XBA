@@ -1,0 +1,44 @@
+1. AnalogDemodulator.cpp 
+Özellikler:
+
+✅ AM demodulation (Envelope Detector): y[n] = √(I²[n] + Q²[n])
+✅ FM demodulation (Frequency Discriminator): Δθ[n] = arg(x[n] · x*[n-1])
+✅ DC blocking filter (IIR, α=0.995)
+✅ De-emphasis filter (75μs time constant)
+✅ Audio resampling (20 MSPS → 48 kHz, linear interpolation)
+✅ Audio SNR estimation
+2. DigitalDemodulator.cpp 
+Özellikler:
+
+✅ Costas Loop carrier recovery (2nd order loop filter)
+✅ Gardner Timing Recovery: e[k] = y(kT - T/2) · [y(kT) - y(kT - T)]
+✅ BPSK/QPSK/8PSK demodulation
+✅ FSK (2FSK/4FSK) demodulation via frequency discriminator
+✅ GMSK/GFSK/MSK support
+✅ Symbol slicing (hard decision)
+✅ BER estimation
+✅ Sync lock detection
+3. PayloadExtractor.cpp 
+Özellikler:
+
+✅ DMR frame extraction (264 bits/burst)
+✅ TETRA frame extraction (sync + control + payload)
+✅ AX.25 packet extraction (flag 0x7E detection)
+✅ APRS payload decoding (AX.25 üzerinden)
+✅ ISM generic packet extraction
+✅ Frame synchronization pattern matching
+✅ CRC-16 validation (CCITT polynomial 0x1021)
+✅ FEC placeholder (genişletilebilir)
+✅ Protocol metadata extraction
+✅ Statistics tracking
+4. SignalMonitoringPipeline.cpp 
+Özellikler:
+
+✅ Thread-safe queue implementasyonu (SPSC pattern)
+✅ Asenkron processing thread (Thread-7)
+✅ Signal tracking entegrasyonu
+✅ Analog/digital demodulation routing
+✅ Payload extraction orchestration
+✅ Real-time callback support
+✅ Performance statistics tracking
+✅ Graceful start/stop

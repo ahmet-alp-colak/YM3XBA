@@ -1,0 +1,20 @@
+Pipeline'ın başlangıç aşamasını çalıştırmak için SinyalTespit.cpp dosyasını derlemeniz ve çalıştırmanız gerekiyor.
+
+Bu dosya pipeline'ın ilk 3 aşamasını içeriyor:
+
+[1] SDR BAŞLATMA VE FREKANS TARAMA (SWEEP) KATMANI - HackRF donanımını başlatır ve 1 MHz - 6 GHz arası spektrumu tarar
+[2] SPSC LOCK-FREE RING BUFFER KATMANI - IQ verilerini gerçek zamanlı işlemek için kuyruk yapısı
+[3] WELCH PSD VE SPEKTRAL ANALİZ KATMANI - Güç spektrumu analizi ve sinyal tespiti
+Dosyayı derlemek için şu komutu kullanın:
+
+g++ -std=c++17 SinyalTespit.cpp -o SinyalTespit -lhackrf -lfftw3 -lfftw3f `pkg-config --cflags --libs opencv4` -lpthread -O3
+
+Ardından çalıştırın:
+
+./SinyalTespit
+
+Program başladığında:
+
+Eğer daha önce eğitilmiş model varsa (rf_scene_model.xml) yükler ve direkt sinyal tespitine başlar
+Yoksa 2000 örnek toplayarak GMM modelini eğitir, sonra tespit moduna geçer
+ENTER tuşuna basarak programı durdurabilir ve öğrenilen modeli kaydedebilirsiniz

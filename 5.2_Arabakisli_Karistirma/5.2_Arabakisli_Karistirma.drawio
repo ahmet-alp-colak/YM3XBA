@@ -1,0 +1,93 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Sayfa-1" id="NpLJA79vX8UFT0nUbFAs">
+    <mxGraphModel dx="1449" dy="799" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-1" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#009900,#009900);fontColor=#ffffff;strokeColor=#2D7600;" value="Başlat: İstihbarat Verisi Alındı" vertex="1">
+          <mxGeometry height="70" width="150" x="162.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-8" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Eck08hF1i6kxKVEX9_Ej-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-2" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;fillColor=light-dark(#CC6600,#CC6600);" value="&lt;span data-path-to-node=&quot;3,1,1,0,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,1,1,0,1,0&quot; data-index-in-node=&quot;23&quot;&gt;target_type == STANDARD_RADIO &amp;amp;&amp;amp; mode == LOOK_THROUGH ?&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;3,1,1,0,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;1&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="210" width="155" x="160" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-3" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#CC0000,#CC0000);" value="Süreci Sonlandır" vertex="1">
+          <mxGeometry height="70" width="150" x="430" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-4" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="Eck08hF1i6kxKVEX9_Ej-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-5" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="Eck08hF1i6kxKVEX9_Ej-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-6" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hayır" vertex="1">
+          <mxGeometry height="30" width="60" x="340" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-11" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Eck08hF1i6kxKVEX9_Ej-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="ET_Thread_2: hw_state değişkenini SENSING (Dinleme) konumuna al" vertex="1">
+          <mxGeometry height="80" width="180" x="147.5" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Evet" vertex="1">
+          <mxGeometry height="30" width="60" x="230" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="&lt;span data-path-to-node=&quot;3,3,1,0,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,3,1,0,1,0&quot; data-index-in-node=&quot;23&quot;&gt;HackRF RX moduna geçirilir ve center_freq yaklaşık 10 ms boyunca dinlenir&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;3,3,1,0,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;5&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="80" width="180" x="147.5" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-14" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="Eck08hF1i6kxKVEX9_Ej-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-17" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Eck08hF1i6kxKVEX9_Ej-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-12" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;fillColor=light-dark(#CC6600,#CC6600);" value="&lt;span data-path-to-node=&quot;3,4,1,0,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,4,1,0,1,0&quot; data-index-in-node=&quot;23&quot;&gt;Ölçülen RF genliği gürültü tabanı (noise floor) eşiğini aştı mı?&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;3,4,1,0,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;6&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="160" width="270" x="102.5" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-13" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="Eck08hF1i6kxKVEX9_Ej-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hayır" vertex="1">
+          <mxGeometry height="30" width="60" x="20" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-20" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="Eck08hF1i6kxKVEX9_Ej-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="&lt;span data-path-to-node=&quot;3,3,1,0,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,3,1,0,1,0&quot; data-index-in-node=&quot;23&quot;&gt;Atomik Geçiş: std::atomic::compare_exchange_strong ile hw_state = JAMMING yapılır&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;3,3,1,0,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;5&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="90" width="283.75" x="95.63" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Evet" vertex="1">
+          <mxGeometry height="30" width="60" x="240" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="&lt;span data-path-to-node=&quot;3,6,1,0,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,6,1,0,1,0&quot; data-index-in-node=&quot;23&quot;&gt;HackRF TX moduna alınır ve hedef kanal üzerine 50-100 ms boyunca Spot Jamming basılır&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;3,6,1,0,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;10&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="90" width="283.75" x="440" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-23" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="Eck08hF1i6kxKVEX9_Ej-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="400" y="800" />
+              <mxPoint x="400" y="480" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-21" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;fillColor=light-dark(#CC6600,#CC6600);" value="&lt;span data-path-to-node=&quot;3,7,1,0,1,0&quot;&gt;&lt;code data-path-to-node=&quot;3,7,1,0,1,0&quot; data-index-in-node=&quot;23&quot;&gt;Hedef yayını sonlandırdı mı veya Operatör görevi iptal etti mi?&lt;/code&gt;&lt;/span&gt;&lt;span data-path-to-node=&quot;3,7,1,0,1,1&quot;&gt;&lt;sup class=&quot;superscript&quot; data-turn-source-index=&quot;11&quot;&gt;&lt;/sup&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="140" width="296.88" x="433.43" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-22" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="Eck08hF1i6kxKVEX9_Ej-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-24" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hayır" vertex="1">
+          <mxGeometry height="30" width="60" x="390" y="710" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-25" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#CC0000,#CC0000);" value="Sistem hw_state = IDLE konumuna döner ve işlem sonlandırılır" vertex="1">
+          <mxGeometry height="90" width="196.87" x="483.44" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="Eck08hF1i6kxKVEX9_Ej-26" edge="1" parent="1" source="Eck08hF1i6kxKVEX9_Ej-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="Eck08hF1i6kxKVEX9_Ej-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

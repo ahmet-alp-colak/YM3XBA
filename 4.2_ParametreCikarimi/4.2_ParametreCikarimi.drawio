@@ -1,0 +1,90 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Sayfa-1" id="R5KazfhKq0yJ-Bb_txqm">
+    <mxGraphModel dx="1449" dy="799" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--4" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="mgSG7mu-TB4OQHYaNrF--2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--1" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#009900,#009900);" value="Başlangıç: Onaylanmış IQ Verisi (Sınıf 1 veya Sınıf 2)" vertex="1">
+          <mxGeometry height="100" width="190" x="210" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--5" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="mgSG7mu-TB4OQHYaNrF--3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="1D Kalman Filtresi ile CFO Tahmini (Frekans Sapması Ölçümü)" vertex="1">
+          <mxGeometry height="70" width="190" x="210" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--8" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="mgSG7mu-TB4OQHYaNrF--6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Karmaşık Frekans Kaydırma (Complex Shift) ile Düzeltme" vertex="1">
+          <mxGeometry height="70" width="190" x="210" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--9" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;" target="mgSG7mu-TB4OQHYaNrF--7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--24" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="mgSG7mu-TB4OQHYaNrF--14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--6" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;fillColor=light-dark(#6600CC,#6600CC);" value="CFO Düzeltmeli IQ Verisi" vertex="1">
+          <mxGeometry height="80" width="200" x="205" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--12" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="mgSG7mu-TB4OQHYaNrF--10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="IQ Ön İşleme (DC Removal, Z-Score Norm, Clipping)" vertex="1">
+          <mxGeometry height="70" width="190" x="50" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--13" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="mgSG7mu-TB4OQHYaNrF--11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="RFConformerNet (ONNX) Modülasyon Sınıflandırma" vertex="1">
+          <mxGeometry height="70" width="190" x="50" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Zamansal Oylama (Temporal Voting) ve Güven Skoru Hesabı" vertex="1">
+          <mxGeometry height="70" width="190" x="50" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="DSP Motoru (RSSI, SNR ve Baud Rate Ölçümü)" vertex="1">
+          <mxGeometry height="70" width="190" x="310" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--25" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="mgSG7mu-TB4OQHYaNrF--32">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="995" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--29" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="mgSG7mu-TB4OQHYaNrF--28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--16" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;fillColor=light-dark(#CC6600,#CC6600);" value="Karar Ağacı: Protokol ve Çoklama (Multiplexing) Tahmin" vertex="1">
+          <mxGeometry height="150" width="246" x="200" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--22" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="mgSG7mu-TB4OQHYaNrF--16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--23" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="mgSG7mu-TB4OQHYaNrF--16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--26" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="FHSS Şartları Sağlandı" vertex="1">
+          <mxGeometry height="30" width="140" x="390" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--28" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="FHSS (Frekans Atlamalı Sinyal) Alarmı Üretimi" vertex="1">
+          <mxGeometry height="70" width="190" x="580" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--31" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Normal Akış" vertex="1">
+          <mxGeometry height="30" width="80" x="440" y="940" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--32" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;fillColor=light-dark(#B5739D,#B5739D);" value="DecodedSignal Veri Yapısında Birleştirme ve PostgreSQL/SQLite Loglama" vertex="1">
+          <mxGeometry height="165" width="160" x="610" y="825" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--33" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#CC0000,#CC0000);" value="Bitiş: Parametre Çıkarımı Tamamlandı" vertex="1">
+          <mxGeometry height="100" width="190" x="595" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="mgSG7mu-TB4OQHYaNrF--34" edge="1" parent="1" source="mgSG7mu-TB4OQHYaNrF--32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="mgSG7mu-TB4OQHYaNrF--33">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

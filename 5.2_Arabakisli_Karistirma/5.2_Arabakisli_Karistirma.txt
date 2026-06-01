@@ -1,0 +1,25 @@
+5.2 Arabakışlı Karıştırma
+
+"Arabakışlı Karıştırma", önceden belirlenmiş olan süre paylaşımı dâhilinde yürütülen tespit ve karıştırma fazlarından oluşan bir elektronik taarruz tekniğidir. Bu uygulama, karıştırma kaynaklarının verimli kullanılmasına yönelik olarak, göndermecin kısa süreliğine kapalı konuma getirilmesini takiben almaç kullanımı ile hedef sinyal varlığının tespitine yönelik spektrum ölçümünün gerçekleştirilmesi işlemidir. İlgili kanalda görülen enerji kazancı sinyal varlığını, kaybı ise süregelen yayının sonlandığını gösterir. Bu nedenle söz konusu görev, RF Karıştırma Sistemi ile koordineli bir şekilde çalışan en az bir adet almaç (RX) kullanımını gerektirir.
+
+Sistem Mimarisi ve İşleyiş (Yazılım/Donanım Altyapısı):
+Bilişsel RF sistemimizde "Arabakışlı Karıştırma" görevi, hedef kanalın aktif olup olmadığını TDD (Zaman Bölmeli Çift Yönlü - Time-Division Duplexing) mantığıyla milisaniye (ms) seviyesinde kontrol edip karıştırmak amacıyla "ET_Thread_2 (Jamming Engine)" tarafından, ET-MOD 2 çatısı altında icra edilir. Sistem, "target_type == STANDARD_RADIO" ve operatör modunun "mode == LOOK_THROUGH" koşullarını sağlaması ile tetiklenir.
+
+Görev icrası donanım ve yazılım bütünlüğünde şu algoritmik adımlarla gerçekleştirilmektedir:
+* Dinleme Fazı (RX): Sistem donanım durumunu kontrol eden "hw_state" atomik değişkeni, "SENSING" (Dinleme) konumuna alınır. 
+* HackRF milisaniyeler (örneğin 10 ms) içinde RX moduna geçirilerek hedefin merkez frekansı (center_freq) dinlenir. 
+* Bu aşamada ölçülen enerji eşiği aşılmışsa hedefin aktif olduğu algoritma tarafından doğrulanır.
+* Karıştırma Fazı (TX): Hedefin aktif olarak tespit edilmesini takiben, donanım yöneticisi "hw_state" değişkenini atomik olarak "JAMMING" durumuna geçirir. 
+* Bu işlem sonrasında HackRF TX (Gönderim) moduna alınır ve hedef kanal üzerine 50-100 ms boyunca dar bantlı "Spot Jamming" uygulanır.
+* RX-TX Döngüsü: Hedef yayınını sonlandırana kadar bu RX ve TX geçiş döngüsü durum makinesi (TxState) üzerinden kesintisiz şekilde devam ettirilir.
+* HackRF'in Half-Duplex (yarı-çift yönlü) doğasını yönetmek ve geçişlerde oluşabilecek yarış koşullarını (Race Condition) önlemek için, "ET_Thread_2" TX isteği göndermeden önce "std::atomic::compare_exchange_strong" metodunu kullanarak durum geçişlerini donanım kilitlenmelerine karşı korur.
+* Hedef karıştırıldıktan sonra sistem IDLE veya SENSING durumuna geri dönerek süreci tekrarlar.
+
+Kullanılacak Almacın Özellikleri ve Sinyal Tespit/Eşikleme Yaklaşımı:
+Sistemimizde Arabakışlı karıştırma donanımı olarak ek ve bağımsız bir almaç kullanmak yerine, HackRF'in Half-Duplex altyapısı yazılımsal TDD tekniğiyle optimize edilmiş ve donanım "hem almaç hem göndermeç" olarak görevlendirilmiştir. Sinyal tespit yaklaşımımız, spektrum ölçümü sırasında elde edilen RF genliğinin önceden belirlenmiş/dinamik hesaplanmış bir gürültü tabanı (noise floor) eşiği ile kıyaslanmasına dayanmaktadır. Kanalda eşik değerinin üzerindeki ani artışlar hedef aktivasyonu, eşiğin altına düşülmesi ise yayın kesintisi olarak etiketlenir.
+
+Alternatif Yöntemler ile Karşılaştırma (Avantaj ve Dezavantajlar):
+Seçmiş olduğumuz "Tek SDR ile TDD Tabanlı Arabakışlı Karıştırma" yöntemi, "Sürekli Karıştırma" ve "Çift Donanımlı (Full-Duplex) Sistemler" ile karşılaştırıldığında şu özelliklere sahiptir:
+* Avantajlar: Sürekli karıştırma yöntemine kıyasla karıştırma kaynakları (RF çıkış gücü, işlemci yükü) çok daha verimli kullanılır. Sadece hedef konuştuğunda taarruz yapıldığı için boşa enerji harcanmaz ve HackRF'in termal limitleri ile Duty-Cycle (Çalışma döngüsü) sınırları aşılmamış olur. Çift donanımlı sistemlere göre ise çok daha az donanım gerektirdiği için boyut, ağırlık ve güç (SWaP) avantajı sağlar.
+* Dezavantajlar: Çift donanımlı sistemlerde RX sürekli dinleme yaparken TX sürekli karıştırma yapabilir. Bizim tasarımımızdaki yarı-çift yönlü TDD mimarisinde ise sistem 50-100 ms'lik karıştırmanın ardından durumu kontrol etmek için "SENSING" moduna geçmek ve yaklaşık 10 ms boyunca dinleme yapmak zorundadır. Bu milisaniyelik boşluklarda, hedef dinleme fırsatı bulabilir ve karşı tarafa çok küçük boyutlu veri paketleri sızabilir.
+

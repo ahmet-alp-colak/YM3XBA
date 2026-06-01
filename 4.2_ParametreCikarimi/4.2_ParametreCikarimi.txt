@@ -1,0 +1,63 @@
+4.2 Parametre Çıkarımı
+Teknik parametre çıkarımı, spektrumda varlığı tespit edilen ve doğrulanan haberleşme sinyallerinin, dost/düşman unsurların tanımlanması, sınıflandırılması ve Elektronik Taarruz (ET) alt sistemlerine anlık servis verilmesi amacıyla ölçülebilir fiziksel özelliklerinin elde edilmesi ve kıymetlendirilmesi aşamasıdır. Bilişsel RF Spektrum Haritalama Sistemi bünyesinde bu görev; ham IQ sinyal seviyesindeki sayısal sinyal işleme (DSP) algoritmaları, derin öğrenme tabanlı öznitelik sınıflandırıcılar ve kural tabanlı karar ağaçlarının hibrit bir mimaride birleştirilmesiyle gerçekleştirilmektedir. Bu bölümde, sistemin tespit ettiği sinyaller üzerinden otonom olarak çıkardığı parametrelerin (Taşıyıcı Frekansı, Bant Genişliği, Güç Seviyesi, Analog/Sayısal Ayrımı, Modülasyon Türü, Protokol Türü, Çoklama Yöntemi ve EKKT Tedbirleri) çıkarma mekanizmaları ve algoritmik detayları sunulmuştur.
+
+4.2.1 Donanım Kaynaklı Frekans Sapması (CFO) ve Kalman Filtresi
+Sinyal tespiti sonrasında donanım osilatörlerinin sıcaklık ve fiziksel koşullara bağlı kaymalarından (oscillator drift) kaynaklanan anlık frekans sıçramalarını (jitter) engellemek ve gerçek frekans ofsetini (Carrier Frequency Offset - CFO) takip etmek için sisteme bir Kalman Filtresi katmanı entegre edilmiştir. 
+FFT veya Costas Loop üzerinden alınan anlık frekans ofseti ölçümü (Z), filtreye girdi olarak beslenir. Zaman ve ölçüm güncelleme döngüleri aracılığıyla sinyalin gerçek taşıyıcı frekansı dinamik olarak kilitlenir.
+
+Tahmin (Predict) Aşaması:
+X_tahmin(k) = A * X(k-1)
+P_tahmin(k) = A * P(k-1) * A^T + Q
+
+Güncelleme (Correct) Aşaması:
+K(k) = P_tahmin(k) * H^T * [ H * P_tahmin(k) * H^T + R ]^-1
+X(k) = X_tahmin(k) + K(k) * [ Z(k) - H * X_tahmin(k) ]
+P(k) = [ I - K(k) * H ] * P_tahmin(k)
+
+Filtreden elde edilen kararlı CFO değeri kullanılarak, ham sinyal üzerinde karmaşık frekans kaydırma (Complex Shift) işlemi uygulanır ve sinyal hedef merkez frekansa tam olarak kilitlenir:
+x_corrected(n) = x_raw(n) * e^(-j * 2 * pi * CFO * n / SAMPLE_RATE)
+
+4.2.2 Yapay Zekâ Destekli Modülasyon Sınıflandırma ve IQ Ön İşleme
+Onaylanmış (Sınıf 1 veya Sınıf 2) sinyallerin modülasyon türünü otonom olarak belirlemek amacıyla çok dallı (multi-branch) RFConformerNet derin öğrenme mimarisi kullanılmaktadır. Bu model, hem zamansal (temporal) verileri işleyen ComplexAwareStem yapısını hem de spektral verileri işleyen FFTBranch yapısını birleştirerek yüksek çözünürlüklü öznitelik çıkarımı yapar. Derin öğrenme modelinin kararlı ve gürültüden arındırılmış girdi alabilmesi için sinir ağı öncesinde IQ Ön İşleme katmanı çalıştırılır:
+
+* Aşama A (DC Removal): Donanım sızıntılarını önlemek için sinyalin DC bileşeni temizlenir (I_yeni = I - mean(I) ve Q_yeni = Q - mean(Q)).
+* Aşama B (Local Z-Score Normalization): Sinyal gücünden bağımsız bir sınıflandırma için varyans ve ortalama normalize edilir. Ağın daha iyi genelleştirmesi için formüle çok küçük bir epsilon (10^-8) değeri eklenir (I_norm = I_yeni / (std_I + 10^-8)).
+* Aşama C (Optional Clipping): Sinyal sıçramalarını sınırlandırmak adına veri aralığı kırpılır [-4, 4].
+
+Ön işlemeden geçen veri, float32 formatında (2, 1024) matris yapısında (I ve Q kanalları) ONNX Runtime motoruna beslenir. Güncel eğitim sonuçlarına göre, modelin Üstel Hareketli Ortalama (EMA) ağırlıkları kullanıldığında genel doğrulama doğruluğu %63.12 olarak ölçülmüştür. Model, özellikle sinyal-gürültü oranının yüksek olduğu durumlarda son derece kararlıdır:
+
+* Yüksek SNR (>0dB): Sınıflandırma doğruluğu %93.78 seviyesindedir.
+* Düşük SNR (<=0dB): Gürültünün baskın olduğu ortamlarda sınıflandırma doğruluğu %21.34 seviyesine düşmektedir.
+
+Tekil çıkarımlardaki (inference) anlık hataları engellemek adına son N adet tahmini kapsayan Zamansal Oylama (Temporal Voting) mekanizması uygulanır. En yüksek oyu alan modülasyon nihai karar kabul edilir ve sistemin güven skoru hesaplanır:
+Confidence = En_Cok_Oy_Alan_Bilesen_Sayisi / Toplam_Cikarim_Sayisi (N)
+
+4.2.3 Karar Ağacı Tabanlı Protokol ve Çoklama (Multiplexing) Analizi
+Sinyalin zaman domainindeki davranışı (Sinyal Tespiti aşamasından gelen Sınıf 1 veya Sınıf 2 bilgisi), bant genişliği ve yapay zekâ katmanından elde edilen modülasyon parametreleri, kural tabanlı bir Karar Ağacında (Decision Tree) birleştirilerek hedefin haberleşme standardı, çoklama türü ve EKKT tedbirleri tahmin edilir.
+
+Çoklama Tespiti ve Protokol Kuralları:
+* Eğer sinyal "Burst / Anlık (Sınıf 1)" olarak etiketlenmişse, zaman bölmeli çoklama (TDMA) veya CSMA mimarisi olarak değerlendirilir.
+* Eğer sinyal "Sürekli (Sınıf 2)" olarak etiketlenmişse, frekans bölmeli çoklama (FDMA) mimarisi olarak değerlendirilir.
+* DMR: Modülasyon = 4FSK + Sınıf = Burst (TDMA) + Bant Genişliği = 12.5 kHz.
+* GSM: Modülasyon = GMSK + Sınıf = Burst (TDMA).
+* TETRA: Modülasyon = QPSK + Sınıf = Sürekli (FDMA) + Bant Genişliği = 25 kHz.
+
+EKKT Uyarısı: Eğer sinyal Sınıf 1 (Burst) yapısındaysa, gücü sabit kalıyor ancak merkez frekansı zamanla sürekli ve düzenli adımlarla değişiyorsa, sistem anlık olarak "FHSS (Frekans Atlamalı Sinyal) Alarmı" üretir ve parametre tablosuna Elektronik Korunma / Karşı Tedbir olarak işler.
+
+4.2.4 Sayısal Demodülasyon Motoru ve RF Parametre Ölçümü
+Sinyalin teknik detaylarını (Analog/Sayısal Ayrımı, Sembol Oranı / Baud Rate, SNR ve RSSI) fiziksel olarak ölçmek ve şifresiz yayınlarda veri/ses içeriğine ulaşmak amacıyla "liquid-dsp" kütüphanesi tabanlı bir Demodulation Engine hattı çalıştırılır. 
+
+* Analog Sinyal İşleme: FM sinyalleri için Frekans Ayrıştırıcı (Frequency Discriminator), AM sinyalleri için Zarf Dedektörü (Envelope Detector) çalıştırılarak PCM ses verisi (Audio Extraction) elde edilir.
+* Sayısal Sinyal İşleme: BPSK/QPSK türevleri için Costas Loop (Taşıyıcı Geri Kazanımı), Gardner Timing Recovery (Zamanlama Geri Kazanımı) ve Symbol Slicer adımları; FSK için Kuadratür Ayrıştırıcı; OFDM için ise FFT sembol kod çözümü ve Pilot Senkronizasyonu koşturularak ham bit akışı (Bitstream) çıkarılır.
+
+Bu süreçte sinyalin RSSI (Alınan Sinyal Gücü Göstergesi) ham IQ genlik karesi üzerinden, SNR (Sinyal-Gürültü Oranı) ise Welch PSD katmanındaki gürültü tabanı (noise floor) farkından hesaplanır. Sayısal sinyallerin sembol geçiş hızları (Baud Rate) otonom olarak ölçülür ve tüm veriler nihai DecodedSignal veri yapısında birleştirilir.
+
+
+Sistemin otonom operasyon döngüsünde elde edilen tüm parametre kayıtları, asenkron thread yapısıyla PostgreSQL/SQLite veritabanına loglanır, böylece geçmişe dönük SIGINT (Sinyal İstihbaratı) analizleri güvence altına alınır.
+
+4.2.6 Alternatif Yöntemler ve Karşılaştırmalı Analiz
+Geliştirilen "Derin Öğrenme Sınıflandırıcısı + Kalman Filtreli CFO + Kural Tabanlı Karar Ağacı" hibrit parametre çıkarım mimarisi, alternatif yaklaşımlarla karşılaştırıldığında belirgin operasyonel avantajlar sunar:
+
+* Saf Şablon Eşleştirme Yöntemi (Pure Template Matching): Düşük işlemci yüküyle çalışır, ancak gürültülü (Düşük SNR) ortamlarda ve Jamming altında eşleşme yeteneğini kaybederek yanlış parametre üretir. Önerilen sistemdeki Kalman ve Z-score katmanları bu zafiyeti ortadan kaldırır.
+* Uçtan Uca Derin Öğrenme Demodülasyonu (End-to-End DL): Ham IQ verisini doğrudan ağlara vererek parametre çözümü yapmayı hedefler. Sınıflandırma başarısı yüksek olsa da, 1 MHz - 6 GHz gibi geniş spektrumlu gerçek zamanlı akışlarda GPU darboğazı (Bottleneck) yaratarak taktik donanımlarda kilitlenmelere sebep olur.
+* Önerilen Hibrit Mimari (AI + DSP Hybrid Pipeline): Modülasyon tanımak için yapay zekâyı hafifletilmiş ONNX matris formatında çalıştırırken; frekans kilitlenmesi, çoklama ayrımı ve protokol tahminini hafif DSP döngülerine bırakır. Bu yaklaşım milisaniyeler seviyesinde gerçek zamanlı (real-time) çıkarma hızına ulaşır ve taktik sahadaki karmaşık dalga şekillerini otonom olarak tanımlar.

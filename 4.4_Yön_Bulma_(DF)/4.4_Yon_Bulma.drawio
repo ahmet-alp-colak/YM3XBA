@@ -1,0 +1,81 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Sayfa-1" id="qjJ2zRF5MiVDK2bAd2x2">
+    <mxGraphModel dx="1449" dy="799" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-3" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Uw9VUkOZCUtG2mPkAH5D-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-1" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#009900,#009900);" value="Yön Bulma (DF) İşlemini Başlat" vertex="1">
+          <mxGeometry height="70" width="148.75" x="101.88" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-5" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Uw9VUkOZCUtG2mPkAH5D-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-2" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=light-dark(#6600CC,#6600CC);" value="Tespit Edilen Sinyal Parametrelerini Al (Merkez Frekansı)" vertex="1">
+          <mxGeometry height="90" width="180" x="86.25" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-7" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Uw9VUkOZCUtG2mPkAH5D-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Anten Dizisini Yüksek Hızda Anahtarla (Yapay Doppler Kayması Oluştur)" vertex="1">
+          <mxGeometry height="80" width="175" x="88.75" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-9" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Uw9VUkOZCUtG2mPkAH5D-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-6" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=light-dark(#6600CC,#6600CC);" value="SDR&#39;dan (HackRF) Yapay Modülasyonlu Ham IQ Verisini Al" vertex="1">
+          <mxGeometry height="90" width="212.5" x="70" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-11" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Uw9VUkOZCUtG2mPkAH5D-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="IQ Verisine Sayısal FM Demodülasyonu Uygula" vertex="1">
+          <mxGeometry height="80" width="175" x="88.75" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-13" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Uw9VUkOZCUtG2mPkAH5D-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-10" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=light-dark(#6600CC,#6600CC);" value="Anahtarlama Kontrolcüsünden Referans Sinyalini (Kare Dalga) Al" vertex="1">
+          <mxGeometry height="90" width="212.5" x="70" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-15" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="Uw9VUkOZCUtG2mPkAH5D-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Demodüle Edilen Sinyalin Fazı ile Referans Sinyalin Fazını Karşılaştır" vertex="1">
+          <mxGeometry height="80" width="175" x="88.75" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Faz Farkından&amp;nbsp;Geliş Açısını (AoA) Kestir" vertex="1">
+          <mxGeometry height="80" width="175" x="88.75" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-18" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="Uw9VUkOZCUtG2mPkAH5D-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="995" />
+              <mxPoint x="350" y="565" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-16" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;fillColor=light-dark(#CC6600,#CC6600);" value="&amp;nbsp; Kestirim Değeri RMS Toleransı (±10°)&amp;nbsp;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;İçerisinde mi?&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="150" width="250" x="441.25" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-17" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="Uw9VUkOZCUtG2mPkAH5D-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Hayır" vertex="1">
+          <mxGeometry height="30" width="60" x="370" y="955" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-22" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#CC0000,#CC0000);" value="Yön Bulma (DF) İşlemini Sonlandır" vertex="1">
+          <mxGeometry height="70" width="148.75" x="491.88" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-23" edge="1" parent="1" source="Uw9VUkOZCUtG2mPkAH5D-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" target="Uw9VUkOZCUtG2mPkAH5D-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Uw9VUkOZCUtG2mPkAH5D-24" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Evet" vertex="1">
+          <mxGeometry height="30" width="60" x="560" y="860" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

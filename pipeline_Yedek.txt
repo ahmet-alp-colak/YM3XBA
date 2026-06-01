@@ -1,0 +1,427 @@
+[1] SDR BAŞLATMA VE FREKANS TARAMA (SWEEP) KATMANI
+-------------------------------------------------------------------------------
+Amaç:
+HackRF cihazını başlatmak, geniş spektrumu taramak ve IQ veri akışı almak.
+
+Bileşenler:
+- libhackrf
+- C++
+- Multi-threaded capture
+- Hardware Sweep Orchestrator
+
+Yapılacaklar:
+1. HackRF initialize edilir.
+2. RX mode başlatılır.
+3. Sample rate (20 MSPS) ayarlanır.
+4. LNA/VGA Gain ayarlanır.
+5. START_FREQ ile END_FREQ arası STEP_FREQ adımlarla taranır.
+6. Frekans kilitlenmesi için 40 ms beklenir.
+7. Sürekli IQ stream alınır.
+
+Önerilen Ayarlar:
+- Sample Rate : 20 MSPS
+- Baseband BW : 20 MHz
+- LNA Gain    : 24-32 dB
+- VGA Gain    : 16-24 dB
+- AMP         : OFF
+
+Çıktı:
+- Sürekli IQ stream
+
+-------------------------------------------------------------------------------
+
+[2] SPSC LOCK-FREE RING BUFFER KATMANI
+-------------------------------------------------------------------------------
+Amaç:
+Farklı thread’lerin aynı IQ verisini yüksek hızda, işletim sistemini kilitlemeden kullanabilmesini sağlamak.
+
+Bileşenler:
+- Single-Producer Single-Consumer (SPSC) Lock-Free Queue
+- std::atomic bazlı head/tail yönetimi
+
+Yapılacaklar:
+1. Gelen IQ verileri doğrudan sıraya yazılır.
+2. DSP Thread’i buradan veri okur.
+3. Buffer dolarsa bellek taşmasını önlemek için en eski veri sessizce düşürülür.
+
+Örnek Veri Yapısı:
+
+struct IQDataBuffer {
+    uint64_t freq;
+    std::vector<std::complex<float>> iq;
+};
+
+-------------------------------------------------------------------------------
+
+[3] WELCH PSD VE SPEKTRAL ANALİZ KATMANI
+-------------------------------------------------------------------------------
+Amaç:
+Klasik FFT'deki anlık gürültü sıçramalarını bastırarak kararlı bir Güç Spektrumu (PSD) elde etmek.
+
+Kütüphane:
+- FFTW3 (FFTW_MEASURE planı ile)
+
+Yapılacaklar:
+1. Buffer’dan IQ bloğu alınır.
+2. %50 örtüşmeli (Overlap) 1024'lük alt bloklara bölünür.
+3. Sızıntıyı önlemek için Hamming Window uygulanır.
+4. Alt blokların FFT'si alınıp ortalaması çıkarılır (Welch PSD).
+5. Anlık patlamaları yakalamak için alt blokların Micro-Variance değerleri kaydedilir.
+
+Çıktı:
+- Pürüzsüz Güç Spektrumu (PSD)
+- Alt blok varyansları
+
+-------------------------------------------------------------------------------
+
+[4] ÇOK BOYUTLU ÖZELLİK ÇIKARIMI (FEATURE ENGINEERING)
+-------------------------------------------------------------------------------
+Amaç:
+Yapay zekanın sinyalleri sadece güç ile değil, istatistiksel geometrisiyle tanımasını sağlamak.
+
+Yapılacaklar:
+Sinyal gücünden bağımsız (scale-invariant) 8 boyutlu özellik vektörü çıkarılır:
+1. Spektral Entropi (Düzen/Kaos oranı)
+2. Spektral Flatness (Bant genişliği karakteri)
+3. Crest Factor (PAPR)
+4. Skewness (Dağılım çarpıklığı)
+5. Kurtosis (Dağılım basıklığı)
+6. Micro-Variance (Zaman domeni dalgalanması)
+7. Relative Power (Normalize güç)
+8. Normalized Frequency (Spektrumdaki konumu)
+
+Çıktı:
+- std::vector<float> features (Size: 8)
+
+-------------------------------------------------------------------------------
+
+[5] GMM TABANLI DENETİMSİZ ÖĞRENME (UNSUPERVISED MODEL)
+-------------------------------------------------------------------------------
+Amaç:
+Sistemin bulunduğu çevresel RF ortamının "normal" profilini öğrenmesi ve otonom anomali (Jamming/Sinyal) tespiti yapması.
+
+Bileşenler:
+- OpenCV EM (Expectation Maximization)
+- Gaussian Mixture Models (8 Component)
+- SVD (Tekil Değer Ayrışımı - Kararlılık için)
+
+Yapılacaklar:
+1. Keşif (Faz 1): Açılışta 2000 geçerli örnek toplanıp GMM eğitilir.
+2. Akış (Faz 2): Gelen 8 boyutlu vektörün, öğrenilen arka plan modeline uyma olasılığı hesaplanır (Mahalanobis Distance).
+3. Log-Likelihood skoru üretilir ve Temporal State katmanına aktarılır.
+
+Çıktı:
+- Log-Likelihood (Anomali) Skoru
+
+-------------------------------------------------------------------------------
+
+[6] TEMPORAL STATE ENGINE VE KARAR MEKANİZMASI
+-------------------------------------------------------------------------------
+Amaç:
+İstatistiksel zaman serisi analizi ile adaptif gürültü eşiklerini (MAD tabanlı) hesaplamak ve sinyal tipine karar vermek.
+
+Yapılacaklar:
+1. Geçmiş Hafıza: Son 100 Log-Likelihood skoru tutulur.
+2. Adaptif Gürültü: Median hesaplanarak noise_floor bulunur.
+3. Adaptif Sapma: MAD (Median Absolute Deviation) ile sigma hesaplanır.
+4. EMA Filtresi: Skora Üstel Hareketli Ortalama uygulanır.
+5. Karar Ağacı: Puan adaptif eşiklerle kıyaslanır.
+
+Sınıflandırma Çıktısı:
+- CLASS 0 : Noise / Background
+- CLASS 1 : Burst (Patlamalı - Wi-Fi, Bluetooth, FHSS)
+- CLASS 2 : Continuous (Sürekli - Yayın, Karıştırma)
+
+-------------------------------------------------------------------------------
+
+[7] SİNYAL TRACKING KATMANI
+-------------------------------------------------------------------------------
+Amaç:
+Aynı sinyali zaman içinde takip etmek ve FHSS (Frekans Atlamalı) sistemleri tespit etmek.
+
+Yapılacaklar:
+1. Yeni sinyaller önceki frame ile karşılaştırılır.
+2. Frekans geçmişi ve doluluk oranı (occupancy) tutulur.
+
+FHSS Tespiti:
+- Sınıf: BURST (Class 1)
+- Güç sabit / Bandwidth benzer
+- Frekans sürekli değişiyor
+=> FHSS suspected / Alarm
+
+-------------------------------------------------------------------------------
+
+[8] ADAPTİF CFO DÜZELTME VE KALMAN FİLTRESİ
+-------------------------------------------------------------------------------
+Amaç:
+Gürültü kaynaklı anlık frekans sıçramalarını (jitter) filtrelemek ve gerçek osilatör kaymasını (oscillator drift) takip etmek.
+
+Yapılacaklar:
+1. Ölçüm (Z): FFT veya Costas Loop üzerinden anlık frekans ofseti ölçülür.
+2. Kalman Zaman Güncellemesi (Predict): Geçmiş duruma ve kayma hızına bakılarak tahmin edilir.
+3. Kalman Ölçüm Güncellemesi (Correct): Yeni ölçüm, Kalman Kazancı ile ağırlıklandırılarak tahmini düzeltir.
+4. Complex Shift: Sinyal, Kalman filtresinden çıkan değere göre hedef frekansa kilitlenir.
+
+-------------------------------------------------------------------------------
+
+[9] IQ PREPROCESSING
+-------------------------------------------------------------------------------
+Amaç:
+AI modülasyon ağının (Classifier) input’unu stabilize etmek.
+
+AŞAMA A — DC REMOVAL
+I -= mean(I), Q -= mean(Q)
+
+AŞAMA B — LOCAL Z-SCORE NORMALIZATION
+I_norm = (I - mean_I) / std_I
+Q_norm = (Q - mean_Q) / std_Q
+
+AŞAMA C — OPTIONAL CLIPPING
+clip(x, -4, 4)
+
+-------------------------------------------------------------------------------
+
+[10] AI : MODULATION CLASSIFIER
+-------------------------------------------------------------------------------
+Amaç:
+Tespit edilmiş ve onaylanmış (Class 1 veya 2) sinyalin modülasyon türünü belirlemek.
+
+Runtime:
+- ONNX Runtime C++
+
+Input:
+float model_input[2][1024]
+
+Output:
+- AM, FM, BPSK, QPSK, OFDM, FSK vb.
+
+-------------------------------------------------------------------------------
+
+[11] TEMPORAL VOTING / CONFIDENCE
+-------------------------------------------------------------------------------
+Amaç:
+Tek inference kaynaklı yanlış kararları azaltmak.
+
+Yapılacaklar:
+1. Son N inference tutulur.
+2. Majority voting uygulanır.
+
+Örnek:
+QPSK -> QPSK -> BPSK -> QPSK => FINAL = QPSK
+
+Confidence:
+confidence = votes / total_votes
+
+-------------------------------------------------------------------------------
+
+[12] DEMODULATION ENGINE
+-------------------------------------------------------------------------------
+Amaç:
+Bulunan modülasyona göre gerçek sinyal çözümleme yapmak.
+
+Kütüphane:
+- liquid-dsp
+
+Pipeline:
+Detected Modulation
+        ↓
+Select Demodulator
+        ↓
+Carrier Recovery
+        ↓
+Clock Recovery
+        ↓
+Symbol Decision
+        ↓
+Payload Extraction
+
+-------------------------------------------------------------------------------
+
+[13] ANALOG DEMODULATION
+-------------------------------------------------------------------------------
+FM:
+- Frequency discriminator
+- Audio extraction
+
+AM:
+- Envelope detector
+
+Çıktı:
+- PCM audio
+
+-------------------------------------------------------------------------------
+
+[14] DIGITAL DEMODULATION
+-------------------------------------------------------------------------------
+BPSK/QPSK:
+- Costas Loop
+- Gardner Timing Recovery
+- Symbol Slicer
+
+FSK:
+- Quadrature discriminator
+
+OFDM:
+- FFT symbol decode
+- Pilot synchronization
+
+Çıktı:
+- Bitstream
+
+-------------------------------------------------------------------------------
+
+[15] PAYLOAD EXTRACTION
+-------------------------------------------------------------------------------
+Amaç:
+Sinyalin içindeki gerçek veriyi çıkarmak.
+
+Örnekler:
+- APRS
+- Telemetry
+- ISM packet
+- AX.25
+- Custom protocol
+
+Çıktı:
+
+struct DecodedSignal {
+    int modulation;
+    std::string payload;
+    float confidence;
+    double freq;
+};
+
+-------------------------------------------------------------------------------
+
+[16] PARAMETER EXTRACTION
+-------------------------------------------------------------------------------
+Amaç:
+DSP tabanlı RF parametrelerini hesaplamak.
+
+Çıkarılacaklar:
+- Carrier Frequency
+- Bandwidth
+- RSSI / Power
+- SNR
+- Analog/Digital ayrımı
+- Signal Timing (Continuous vs Burst)
+- Symbol Rate (Baud)
+
+-------------------------------------------------------------------------------
+
+[17] PROTOKOL VE ÇOKLAMA (MULTIPLEXING) ANALİZİ
+-------------------------------------------------------------------------------
+Amaç:
+Modülasyon, bant genişliği ve sınıflandırma verilerini birleştirerek hedefin haberleşme standardını ve MAC türünü tahmin etmek.
+
+Yapılacaklar:
+1. Çoklama Tespiti:
+   - Burst (Class 1) -> TDMA veya CSMA
+   - Continuous (Class 2) -> FDMA
+2. Kural Tabanlı Protokol Eşleştirmesi (Decision Tree):
+   Örn: Mod=4FSK + Sınıf=Burst (TDMA) + BW=12.5kHz => DMR
+   Örn: Mod=GMSK + Sınıf=Burst (TDMA) => GSM
+   Örn: Mod=QPSK + Sınıf=Continuous (FDMA) + BW=25kHz => TETRA
+
+Çıktı:
+- Tahmini Protokol (DMR, TETRA, GSM vb.)
+- Çoklama Türü (TDMA, FDMA vb.)
+
+-------------------------------------------------------------------------------
+
+[18] DATABASE / LOGGING KATMANI VE PERSISTENCE
+-------------------------------------------------------------------------------
+Amaç:
+Sistem modellerini ve tespit edilen sinyalleri kayıt altına almak.
+
+Yapılacaklar:
+1. Eğitilmiş GMM matrisleri rf_scene_model.xml dosyasına kaydedilir.
+2. Tespit edilen aktif sinyaller PostgreSQL/SQLite ile loglanır.
+
+Örnek:
+struct SignalRecord {
+    uint64_t timestamp;
+    double freq;
+    double bw;
+    int activity_class;
+    int modulation;
+    std::string protocol;
+    std::string payload;
+};
+
+-------------------------------------------------------------------------------
+
+[19] UI / OPERATÖR ARAYÜZÜ
+-------------------------------------------------------------------------------
+Amaç:
+Operatör farkındalığı (Durumsal Farkındalık) sağlamak.
+
+UI İçeriği:
+- Waterfall Spectrum
+- Active Signals Table (Occupancy oranlarıyla)
+- EKKT / Jamming Alarm Göstergesi (Düşük Log-Likelihood)
+- FHSS Alarm
+- Signal History
+- Audio Playback
+- Payload Viewer
+
+Tablo Örneği:
+Freq | BW | Class | Mod | Protocol | MAC (Mux) | Power | Payload | Tracking Time
+
+-------------------------------------------------------------------------------
+
+[20] THREADING MİMARİSİ
+-------------------------------------------------------------------------------
+Thread-1 (Hardware Sweep):
+HackRF RX Capture + SPSC Queue Push
+
+Thread-2 (DSP Engine):
+SPSC Pop + Welch PSD + Feature Extraction + GMM + Temporal State
+
+Thread-3 (Tracking & Sync):
+Signal Tracking + CFO Düzeltme + Kalman Filtresi
+
+Thread-4 (AI Inference):
+Modulation Classifier (ONNX)
+
+Thread-5 (Demodulation):
+Liquid-DSP + Protocol Analysis
+
+Thread-6 (UI & Logging):
+Arayüz Renderlama ve Database Kayıtları
+
+-------------------------------------------------------------------------------
+
+[21] MODEL ROBUSTNESS / DATA AUGMENTATION
+-------------------------------------------------------------------------------
+Modülasyon modelinin (AI Stage-2) eğitimi sırasında eklenmeli:
+
+- AWGN
+- CFO
+- IQ imbalance
+- Phase noise
+- Multipath fading
+- Burst truncation
+- Jamming / Interference Sinyalleri
+
+Amaç:
+Gerçek RF ortamına ve elektronik taarruza dayanıklı model üretmek.
+
+-------------------------------------------------------------------------------
+
+[22] NİHAİ SİSTEM TANIMI
+-------------------------------------------------------------------------------
+
+Yetkinlikler:
+- Geniş Bant Spektrum Tarama (Hardware Sweep)
+- Denetimsiz Makine Öğrenmesi ile Çevresel Profilleme
+- Otonom Dinamik Gürültü Eşiği (MAD Tabanlı)
+- Sinyal Tespiti (Burst / Continuous) ve İzleme
+- FHSS Tespiti
+- Elektronik Karıştırma (EKKT / Jamming) Farkındalığı
+- Modülasyon Sınıflandırma
+- Multiplexing (TDMA/FDMA/CDMA) tespiti
+- Protocol identification (DMR, TETRA, P25 vb.)
+- Demodulation & Payload extraction
+- Signal intelligence (SIGINT)
+- Real-time operator interface

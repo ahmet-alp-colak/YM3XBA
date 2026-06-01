@@ -1,0 +1,23 @@
+4.5 Konum Belirleme
+
+Konum belirleme, taktik sahaya dağıtık olarak yerleştirilen Elektronik Destek (ED) istasyonlarından elde edilen Yön (AoA - Angle of Arrival) verilerinin merkezi bir füzyon algoritmasıyla birleştirilerek, elektromanyetik yayın kaynağının coğrafi koordinatlarının (Enlem ve Boylam) iki boyutlu uzayda kestirilmesi aşamasıdır. Bilişsel RF Spektrum Haritalama Sistemi, bu görevi iki istasyonlu "Çapraz Kesiştirme" (Cross-Fixing) yöntemi ve "En Küçük Kareler" (Least Squares) optimizasyonu ile otonom olarak gerçekleştirmektedir. Aşağıda bu mimarinin ağ yerleşimi, matematiksel altyapısı ve sistem entegrasyonu detaylandırılmıştır.
+
+4.5.1 Sistem Yerleşimi ve Ağ Mimarisi
+Konum belirleme yeteneği için sistem, operasyon sahasına birbirini görecek ve hedef bölgeyi kapsayacak şekilde stratejik olarak konumlandırılmış 2 adet sabit ED istasyonundan oluşmaktadır. Her bir istasyon, kendi dairesel anten dizisiyle tespit ettiği anlık azimut açısını (AoA), üzerindeki GPS/GNSS modülünden aldığı milisaniyelik zaman etiketi (timestamp) ve kendi coğrafi konumu (istasyon enlem/boylam) ile paketler. Sıkıştırılmış bu veri paketleri, istasyonlar arasına kurulan kablosuz bir veri linki üzerinden asenkron olarak Merkezi Füzyon Birimine aktarılır.
+
+4.5.2 Çapraz Kesiştirme (Cross-Fixing) ve En Küçük Kareler Algoritması
+Merkezi birime akan her iki istasyona ait LOB (Line of Bearing - Kerteriz Hattı) doğruları, konumlandırma algoritması tarafından eşzamanlı olarak matematiksel bir kesişim matrisine dönüştürülür. İki doğrunun harita üzerindeki kesişimi ideal şartlarda tek bir nokta olsa da, RF yansımaları, çevresel gürültüler ve donanımın doğasında bulunan RMS yön hataları (±10 derece) nedeniyle hedef etrafında bir belirsizlik alanı (hata elipsi) oluşur.
+
+Sistem, bu açısal hataların etkisini minimize etmek ve en yüksek olasılıklı konumu bulmak için "En Küçük Kareler" (Least Squares) optimizasyon algoritmasını koşturur. Algoritma, tahmin edilen hedef noktası ile istasyonlardan uzanan kerteriz doğruları arasındaki dik uzaklıkların kareleri toplamını minimize eden optimum coğrafi koordinatı iteratif olarak hesaplar. Bu sayede hedefin gerçek enlem ve boylamı, gürültülü sensör verilerine rağmen yüksek bir kararlılıkla (robustness) kestirilir.
+
+4.5.3 Veri Füzyonu ve Taktik Harita Görselleştirmesi
+Konumlandırma algoritmasından çıkan coğrafi koordinat verileri; sinyalin modülasyon tipi, protokolü ve çıkarılan mesaj içeriği (Payload) ile birleştirilerek tek bir SIGINT veri yapısında (struct) toplanır. Veritabanına asenkron olarak loglanan bu yapı, eşzamanlı olarak Operatör Arayüzüne (UI) iletilir. Hedef konumları, arayüzdeki taktik coğrafi harita katmanı üzerinde dinamik olarak işaretlenir. İstasyonların bulundukları noktalar ve kestirilen hedefe doğru uzanan LOB doğruları harita üzerinde gerçek zamanlı vektörler halinde çizilerek operatöre kusursuz bir durumsal farkındalık sunulur.
+
+4.5.4 Alternatif Yöntemler ve Karşılaştırmalı Analiz
+Elektromanyetik yayılım kaynaklarının yerinin bulunabilmesi için literatürde farklı yöntemler bulunmakta olup, AoA tabanlı Çapraz Kesiştirme mimarisi proje kısıtları dahilinde en optimal çözüm olarak seçilmiştir:
+
+- Varış Zamanı Farkı (TDOA): Sinyalin farklı istasyonlara ulaşma süresindeki mikrosaniyelik farkları hesaplayarak hiperbolik kesişimler oluşturur. Çok yüksek konum doğruluğu sunmasına rağmen, istasyonlar arası fiber optik hat veya atomik saat düzeyinde nano-saniye hassasiyetli zaman senkronizasyonu gerektirir. Dar bantlı veri linkleri ve taşınabilir SDR donanımları için uygulanabilirliği ve maliyet etkinliği düşüktür.
+
+- Varış Frekans Farkı (FDOA): Doppler kayması üzerinden konum üretebilmesi için hedefin veya algılayıcı istasyonların sürekli ve yüksek hızda hareket halinde olmasını (İHA veya hava platformları) zorunlu kılar. Sabit kara istasyonları kurgusuna uygun değildir.
+
+- Önerilen Yöntem (AoA Tabanlı Cross-Fixing): Yalnızca açı verisinin dijital olarak iletilmesini gerektirdiği için istasyonlar arası iletişim hattında çok düşük bant genişliği tüketir. Standart GPSDO zaman senkronizasyonu ile donanım kısıtlarını aşarak, taktik sahada en düşük işlemci/ağ yüküyle (SWaP avantajı) kararlı bir konumlandırma sağlar.

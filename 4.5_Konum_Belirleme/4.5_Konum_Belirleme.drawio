@@ -1,0 +1,82 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Sayfa-1" id="oQZq63CJY6cuu-4zLoi_">
+    <mxGraphModel dx="1449" dy="799" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-11" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="4sZ00XZRAA7wIM1WAjp8-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-5" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#009900,#009900);" value="ED İstasyonu 1" vertex="1">
+          <mxGeometry height="90" width="130" x="60" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-10" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="4sZ00XZRAA7wIM1WAjp8-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-6" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#009900,#009900);" value="ED İstasyonu 2" vertex="1">
+          <mxGeometry height="90" width="130" x="240" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="AoA, GPS Zaman Etiketi ve İstasyon Konumunun Paketlenmesi" vertex="1">
+          <mxGeometry height="80" width="130" x="60" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-16" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="4sZ00XZRAA7wIM1WAjp8-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="AoA, GPS Zaman Etiketi ve İstasyon Konumunun Paketlenmesi" vertex="1">
+          <mxGeometry height="80" width="130" x="240" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-18" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="4sZ00XZRAA7wIM1WAjp8-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="LOB (Kerteriz Hattı) Kesişim Matrisinin Oluşturulması&quot;" vertex="1">
+          <mxGeometry height="80" width="130" x="460" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-23" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="4sZ00XZRAA7wIM1WAjp8-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="En Küçük Kareler (Least Squares) Optimizasyonu" vertex="1">
+          <mxGeometry height="80" width="160" x="642.5" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-24" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="4sZ00XZRAA7wIM1WAjp8-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Optimum Coğrafi Koordinatın (Enlem/Boylam) Kestirimi" vertex="1">
+          <mxGeometry height="80" width="160" x="642.5" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Konum, Modülasyon, Protokol ve Payload Verilerinin Birleştirilmesi (SIGINT Yapısı)" vertex="1">
+          <mxGeometry height="80" width="130" x="460" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-32" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="4sZ00XZRAA7wIM1WAjp8-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-27" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;rotation=90;" value="" vertex="1">
+          <mxGeometry height="100" width="50" x="229" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-28" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="4sZ00XZRAA7wIM1WAjp8-27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-29" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.database;whiteSpace=wrap;fillColor=light-dark(#B5739D,#B5739D);" value="Zaman Damgalı Loglama" vertex="1">
+          <mxGeometry height="70" width="140" x="60" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-34" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="4sZ00XZRAA7wIM1WAjp8-33">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-30" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Operatör Arayüzü (UI)" vertex="1">
+          <mxGeometry height="55" width="140" x="279" y="537.5" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-31" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="4sZ00XZRAA7wIM1WAjp8-29">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-33" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#3333FF,#3333FF);" value="Taktik Harita Üzerinde LOB Vektörlerinin ve Hedef Konumunun Dinamik Çizimi" vertex="1">
+          <mxGeometry height="80" width="171" x="263.5" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-35" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_1;whiteSpace=wrap;fillColor=light-dark(#CC0000,#CC0000);" value="Durumsal Farkındalık Sağlandı / Döngü Sonu" vertex="1">
+          <mxGeometry height="90" width="150" x="570" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="4sZ00XZRAA7wIM1WAjp8-36" edge="1" parent="1" source="4sZ00XZRAA7wIM1WAjp8-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="4sZ00XZRAA7wIM1WAjp8-35">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

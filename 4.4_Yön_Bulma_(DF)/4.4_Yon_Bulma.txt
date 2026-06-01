@@ -1,0 +1,25 @@
+4.4 Yön Bulma (DF)
+
+Yön bulma, spektrumda varlığı ve parametreleri tespit edilen elektromanyetik yayılım kaynağının, sinyali algılayan sensör dizisine göre geliş yönünün ölçülmesi işlemidir. Bilişsel RF Spektrum Haritalama Sistemi mimarisinde bu görev, tek kanallı (Single-Channel) HackRF donanımının fiziksel kısıtlarını aşmak amacıyla "Faz Karşılaştırmalı Yön Bulma" prensibine dayanan Pseudo-Doppler yöntemiyle gerçekleştirilmektedir. Bu bölümde, tespit edilen hedeflerin Geliş Açısının (AoA - Angle of Arrival) elde edilme süreci, donanım-yazılım entegrasyonu ve kullanılan sayısal sinyal işleme algoritmaları detaylandırılmıştır.
+
+4.4.1 Donanım Altyapısı: Dairesel Anten Dizisi ve Yüksek Hızlı RF Anahtarlama
+Sistem, yön kestirimi yapabilmek için aralarında hedeflenen frekans bandına uygun dalga boyu mesafesi bulunan 4 adet özdeş omnidirectional antenin dairesel bir plaka üzerine yerleştirildiği donanımsal bir dizi kullanır. HackRF gibi tek kanallı yazılım tanımlı radyolar (SDR), farklı antenlerden gelen sinyalleri aynı anda alıp doğrudan faz farkı ölçümü yapamazlar. 
+
+Bu darboğazı aşmak için, anten dizisi ile SDR arasına yüksek hızlı elektronik RF anahtarlama kartı (RF Switch Matrix) entegre edilmiştir. Özel bir mikrodenetleyici tabanlı zamanlama ünitesi (Kontrolcü), dizideki antenleri dairesel bir sıra ile (Anten 1 -> 2 -> 3 -> 4 -> 1) ve yüksek frekansta (kHz mertebelerinde) sürekli anahtarlayarak elde edilen çoklu sinyali HackRF'in tek almaç kanalına ardışık olarak indirger.
+
+4.4.2 Pseudo-Doppler Demodülasyonu ve Faz Karşılaştırma Algoritması
+Antenler arası bu yüksek hızlı elektronik dairesel anahtarlama işlemi, fiziksel olarak hızla dönen tek bir antenin yaratacağı etkiyi simüle ederek, gelen RF sinyali üzerinde yapay bir Doppler kayması (FM modülasyonu) oluşturur. Sistem, bu yapay kaymayı yön bilgisine dönüştürmek için aşağıdaki sayısal sinyal işleme (DSP) boru hattını işletir:
+
+- Demodülasyon: SDR (HackRF) donanımından alınan ve anahtarlama kaynaklı yapay Doppler kayması içeren IQ verisi, sayısal FM demodülatöründen geçirilerek sinyalin üzerine binen bu yapay FM sinyali çözülür.
+- Referans Sinyal Senkronizasyonu: RF anahtarlama kontrolcüsünün dairesel dönüş frekansına ait kare dalga karakteristiğindeki sinyal, yazılımdaki faz dedektörüne "Referans Sinyali" olarak beslenir.
+- Faz Karşılaştırma ve Kestirim: SDR'da demodüle edilen sinyalin anlık fazı ile referans sinyalin fazı eş zamanlı olarak matematiksel karşılaştırmaya tabi tutulur. Ölçülen faz farkı, doğrudan gelen RF dalgasının geliş açısıyla ilişkilendirilerek hedefin yönü (AoA) derece cinsinden kestirilir.
+
+4.4.3 RMS Yön Doğruluğu ve Beklenen Performans
+Yön bulma doğruluğu, ölçülen yön (Line of Bearing) değerleri ile hedefin gerçek yönü arasındaki hata dağılımının büyüklüğünü temsil eden "Derece RMS" (Root Mean Square) cinsinden değerlendirilmektedir. Önerilen Pseudo-Doppler mimarisi; donanım kalibrasyonu ve algoritmik faz düzeltmeleri ile birlikte sistemin öngörülen RMS yön bulma doğruluğu ±10° seviyesindedir. Yön bulma algoritmalarından sürekli olarak üretilen azimut açısı değeri, veri füzyonu ve görselleştirme katmanlarına iletilerek taktik harita üzerinde anlık vektörler halinde operatöre sunulur.
+
+4.4.4 Alternatif Yöntemler ve Karşılaştırmalı Analiz
+Elektronik Destek (ED) sistemlerinde yön kestirimi için farklı metotlar bulunmakta olup, Pseudo-Doppler mimarisi proje kısıtları dahilinde en optimal çözüm olarak seçilmiştir:
+
+- Genlik Tabanlı Yön Bulma: Farklı yönlere bakan yönlü antenlerin mekanik olarak döndürülmesine veya sabit antenlerde sinyal genliklerinin karşılaştırılmasına dayanır. Bu yöntem çoklu yansıma (multipath) koşullarının olduğu kentsel ortamlarda son derece kararsızdır ve mekanik tarama zorunluluğu nedeniyle sistemin 1 MHz - 6 GHz bandındaki geniş spektrum tarama (Sweep) hızını dramatik ölçüde düşürür.
+- Gerçek Faz Karşılaştırma (Interferometri): Sinyalin geliş açısını antenler arasındaki anlık faz farkını doğrudan ölçerek bulur. Çok yüksek hassasiyete sahip olsa da "faz-senkron" çalışan ve birden fazla almaç kanalı barındıran kompleks SDR donanımlarına ihtiyaç duyar.
+- Önerilen Yöntem (Pseudo-Doppler): Tek kanallı HackRF mimarisini yüksek hızlı RF anahtarlama ile destekleyerek, Interferometri yönteminin ihtiyaç duyduğu yüksek donanım bütçesini ve güç tüketimini elimine eder. Hem taktik sahada fazlasıyla yeterli olan ±10° RMS doğruluğunu gerçek zamanlı olarak sunar hem de sistemin taşınabilirliğini (SWaP avantajı) maksimize eder.
