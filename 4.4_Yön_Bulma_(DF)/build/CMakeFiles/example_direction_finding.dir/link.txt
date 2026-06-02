@@ -1,0 +1,1 @@
+/usr/bin/c++  -Wall -Wextra -Wpedantic -O3 -DNDEBUG -march=native CMakeFiles/example_direction_finding.dir/examples/example_usage.cpp.o -o example_direction_finding  libCognitiveRF_DirectionFinding.a /usr/lib/x86_64-linux-gnu/libliquid.so 

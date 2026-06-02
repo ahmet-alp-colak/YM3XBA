@@ -1,0 +1,2 @@
+/usr/bin/ar qc libCognitiveRF_DirectionFinding.a CMakeFiles/CognitiveRF_DirectionFinding.dir/src/DirectionFindingEngine.cpp.o CMakeFiles/CognitiveRF_DirectionFinding.dir/src/AntennaSwitcher.cpp.o CMakeFiles/CognitiveRF_DirectionFinding.dir/src/PseudoDopplerDemodulator.cpp.o CMakeFiles/CognitiveRF_DirectionFinding.dir/src/PhaseComparator.cpp.o CMakeFiles/CognitiveRF_DirectionFinding.dir/src/DirectionFindingPipeline.cpp.o
+/usr/bin/ranlib libCognitiveRF_DirectionFinding.a

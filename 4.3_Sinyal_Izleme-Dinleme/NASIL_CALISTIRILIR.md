@@ -212,7 +212,7 @@ Program FM sinyalini otomatik demodüle eder ve `output_fm.wav` dosyasina kayded
 ```bash
 ./example_monitoring
 
-# Ses dosyasini dinlemek icin:
+#### Ses dosyasini dinlemek icin:
 aplay output_fm.wav      # ALSA ile
 ffplay output_fm.wav     # FFmpeg ile
 ```
