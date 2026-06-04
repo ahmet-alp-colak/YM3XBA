@@ -1,0 +1,246 @@
+
+1. Genel Sistem Mimarisi
+
+Ana sistem blokları:
+1. Elektronik Destek (ED) Pipeline
+   - SDR başlatma ve geniş bant tarama
+   - Lock-free ring buffer
+   - Welch PSD spektral analiz
+   - Çok boyutlu özellik çıkarımı
+   - Denetimsiz GMM tabanlı anomali tespiti
+   - Temporal state / adaptif eşik
+   - Sinyal takip
+   - Pseudo-Doppler yön bulma (DF)
+   - Cross-fixing konum belirleme
+   - Kalman tabanlı CFO düzeltme
+   - IQ ön işleme
+   - Modülasyon sınıflandırma
+   - Demodülasyon / payload extraction / parameter extraction
+
+2. Elektronik Taarruz (ET) Pipeline
+   - ED-ET köprüsü (asenkron shared memory / ZeroMQ)
+   - TX donanım yöneticisi
+   - ET-MOD 1: Spot jamming
+   - ET-MOD 2: Arabakışlı (look-through) jamming
+   - ET-MOD 3: Analog telsiz aldatma (voice conversion)
+   - ET-MOD 4: GNSS aldatma
+   - ET-MOD 5: Bilişsel FHSS takip ve akıllı karıştırma
+   - 4-thread paralel çalışma
+
+Mimari sınıflandırma:
+- ED, tespit ve bilgi çıkarımı işlevini gerçek zamanlı yapar.
+- ET, ED’den gelen hedef bilgisini alıp karıştırma veya aldatma görevine dönüştürür.
+- ED ve ET arasındaki veri yolu, düşük gecikmeli IPC/mesajlaşma mantığıyla çalışır.
+
+---
+
+2. Donanım Konfigürasyon Birimleri (DKB)
+
+Birincil DKB’ler:
+- SDR: HackRF One veya eşdeğer 1 MHz–6 GHz SDR
+  - 20 MSPS örnekleme
+  - Half-duplex RX/TX
+  - libhackrf üzerinden kontrol
+
+- RF Anten Dizisi
+  - 4 kanallı dairesel anten dizisi
+  - Pseudo-Doppler yön bulma için tasarlanmış
+
+- RF Switch / Anahtarlama Kartı
+  - Yüksek hızda anten seçimini sağlayan RF switch matrix
+  - Tek kanallı SDR’yi birden fazla antenle kullandırarak AoA elde eder
+
+- Hesaplama Platformu
+  - Çok çekirdekli CPU veya gömülü PC
+  - C++ uygulamaları için yeterli işlem gücü
+  - ONNX Runtime, FFTW3, liquid-dsp, OpenCV desteği
+
+- Konum ve Senkronizasyon
+  - GPS/GNSS modülü
+  - 2 ayrı ED istasyonu için zaman damgası ve coğrafi konum
+
+İlave altyapı bileşenleri:
+- Shared memory / ZeroMQ veri hattı
+- USB veya dahili haberleşme arayüzü (SDR ile)
+- Güç dağıtımı: bilgisayar + HackRF + RF switch + anten
+- Ses giriş/çıkışı için mikrofon / audio interface (Analog aldatma için)
+
+---
+
+3. Alt Sistem Özetleri
+
+3.1. Sinyal Tespiti (4.1)
+- Hedef: 1 MHz–6 GHz aralığında sürekli spektrum taramak ve sinyal varlığını tespit etmek.
+- Donanım: HackRF + 20 MSPS + 10 MHz adımlı tarama
+- Yazılım:
+  - Lock-free SPSC ring buffer
+  - FFTW3 ile Welch PSD
+  - Hamming window + %50 overlap
+  - 8 boyutlu scale-invariant özellik vektörü
+- Karar:
+  - GMM tabanlı model eğitimi
+  - Mahalanobis/log-likelihood
+  - Temporal state + adaptive threshold (MAD, EMA)
+- Alternatifler:
+  - Enerji tespiti yerine GMM seçildi
+  - Cyclostationary yerine daha hafif ve geniş bant uyumlu mimari tercih edildi
+
+3.2. Parametre Çıkarımı (4.2)
+- Hedef: tespit edilen sinyallerin taşıyıcı frekansı, bantgenişliği, modülasyonu, protokolü çıkarmak.
+- Temel bileşenler:
+  - Kalman tabanlı CFO düzeltme
+  - IQ DC removal, z-score normalization, optional clipping
+  - ONNX runtime tabanlı modülasyon sınıflandırması
+  - liquid-dsp tabanlı demodülasyon
+- Ürün:
+  - Modülasyon: AM, FM, BPSK, QPSK, OFDM, FSK vb.
+  - Çıktı: DecodedSignal { modulation, payload, confidence, freq, aoa, target_lat, target_lon }
+- Alternatifler:
+  - Template matching/kesin eşleme yerine hibrit AI + DSP
+  - End-to-end DL yerine kontrol edilebilir, gerçek zamanlı pipeline seçildi
+
+3.3. Sinyal İzleme/Dinleme (4.3)
+- Hedef: tespit edilen yayınları takip etmek, ses/veri akışına dönüştürmek.
+- İşlevler:
+  - Zamansal sinyal tracking
+  - Burst/sürekli karakter analizi
+  - Analog demodülasyon: FM discriminator, AM envelope detection
+  - Sayısal demodülasyon: Costas loop, Gardner timing recovery, OFDM FFT
+  - Payload extraction + protokol analizi
+- Katkı:
+  - Operatöre gerçek zamanlı sinyal duyumu ve analiz sağlar
+  - Provizyonlu SIGINT rapor üretir
+
+3.4. Yön Bulma (DF) (4.4)
+- Hedef: tespit edilen sinyalin geliş yönünü AoA olarak ölçmek.
+- Yöntem:
+  - 4’lü dairesel anten + RF switch + pseudo-Doppler
+  - Faz karşılaştırma / yapay Doppler demodülasyonu
+- Performans:
+  - Hedeflenen ≈ ±10° RMS doğruluk
+- Alternatifler:
+  - Mekanik tarama veya interferometri yerine pseudo-doppler seçildi
+  - Tek kanallı SDR ile kullanılabilirlik ve SWaP önceliklendi
+
+3.5. Konum Belirleme (4.5)
+- Hedef: iki ED istasyonundan gelen AoA verisini cross-fixing ile konuma dönüştürmek.
+- Yöntem:
+  - 2 istasyonlu Line of Bearing
+  - Least Squares optimizasyonu
+- Sağladığı:
+  - Coğrafi koordinat tahmini
+  - Hata elipsi / belirsizlik yönetimi
+- Alternatifler:
+  - TDOA/FDOA yerine AoA seçildi
+  - İstasyonlar arası düşük bantlı bağlantı gereksinimi ve taşınabilirlik tercih edildi
+
+---
+
+4. ET Alt Sistemleri ve Neden Seçildiği
+
+4.1. Sürekli Karıştırma (5.1)
+- İşlev: hedef frekansta kesintisiz jamming
+- Seçim:
+  - Tek hedef üzerine güçlü spot jamming
+  - Sistemin sınırlı TX gücünü en etkin kullanma
+- Neden:
+  - Barrage karıştırma yerine dar band verimliliği
+  - HackRF’in güç sınırına uyumlu
+
+4.2. Arabakışlı Karıştırma (5.2)
+- İşlev: TDD mantığıyla kısa RX ve TX periyotları
+- Seçim:
+  - Half-duplex HackRF’in donanımını yazılımla optimize etmek
+- Neden:
+  - Operasyonel verimlilik
+  - Sürekli bombardıman yerine hedefe göre enerji kullanımı
+
+4.3. Analog Telsiz Aldatma (5.3)
+- İşlev: ses benzeştirme ve fake voice transmission
+- Seçim:
+  - ONNX tabanlı voice conversion
+  - Double buffer ile süreklilik
+- Neden:
+  - Replay atak yerine dinamik ve canlı sahte ses
+  - Gerçek zamanlı operatör girdisi ile uyum
+
+4.4. GNSS Aldatma (5.4)
+- İşlev: GPS/GLONASS/Galileo spoofing
+- Seçim:
+  - Real-time I/Q sentezi + güç yönetimli hizalama
+- Neden:
+  - Meaconing ve brute-force tekniklerine göre daha az uyarı üretme
+  - Hedef alıcıyı sessizce ve kontrollü şekilde ele geçirme
+
+4.5. Bilişsel FHSS Karıştırma (ET-MOD 5)
+- İşlev: frekans atlayan hedefi tahmin ederek jamming
+- Seçim:
+  - Online transition matrix / Markov benzeri tahmin
+- Neden:
+  - FHSS için tek frekanslı spot jamming yetersiz
+  - Öncesinde frekans atlama örüntüsü öğrenip zamanında müdahale
+
+---
+
+5. RF Bandı ve Teknik Özellik Seçimleri
+
+- Temel alım bandı: 1 MHz – 6 GHz
+- SDR sample rate: 20 MSPS, baseband BW 20 MHz
+- Tarama adımı: 10 MHz
+- HackRF ayarları:
+  - LNA gain: 24–32 dB
+  - VGA gain: 16–24 dB
+  - AMP: OFF
+- GNSS:
+  - GPS L1 1575.42 MHz
+  - GLONASS L1 / Galileo E1 desteklenebilir
+- Jamming:
+  - 0–3 GHz spot jamming
+  - 50–100 ms look-through TX döngüsü
+- DF:
+  - Pseudo-Doppler ile faz bazlı AoA
+  - ±10° hassasiyet hedefi
+- Güç yönetimi:
+  - TX duty-cycle izleme
+  - Termal limit kontrolü
+
+---
+
+6. Sistem Mimarisi İçin Blok Şema Yönergesi
+
+Önerilen blok şema bileşenleri:
+1. SDR / HackRF
+   - frequency sweep
+   - RX/TX anahtarlama
+2. Lock-Free buffer
+3. Welch PSD
+4. Feature extraction
+5. GMM anomaly detection
+6. Temporal state / decision logic
+7. Tracking + modulation classifier
+8. Demodulation / payload extraction
+9. DF / antenna array + RF switch
+10. Cross-fixing konum belirleme
+11. ED-ET bridge
+12. ET TX manager
+13. ET modülleri: spot, look-through, deception, GNSS spoofing, FHSS
+
+Bağlantı ve hatlar:
+- Güç hattı: compute -> SDR, RF switch, GPS, anten desteği, audio interface
+- Haberleşme hattı:
+  - SDR <-> compute (USB/PCIe)
+  - ED <-> ET (shared memory / ZeroMQ)
+  - Çapraz istasyon bağlantısı (network / wireless)
+  - GPS/Time sync hattı
+- Donanım arayüzleri:
+  - RF switch kontrolü
+  - Anten dizisi
+  - TX/RX durum makinesi
+  - Voice buffer
+
+Çizimde:
+- Sol tarafta ED algılama + analiz pipeline
+- Sağ tarafta ET taarruz modülleri
+- Üstte DF + konum belirleme
+- Ortada ortak veri köprüsü ve güç/haberleşme hatları
+
