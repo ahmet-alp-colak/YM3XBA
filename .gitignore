@@ -6,3 +6,5 @@ venv/
 *.wav
 *.raw
 dataset*/
+.claude-flow/
+.clinerules

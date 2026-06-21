@@ -1,0 +1,792 @@
+# ============================================================================
+# COGNITIVE RF SPECTRUM MAPPING SYSTEM - CLINE DEVELOPMENT RULES
+# Bilişsel RF Spektrum Haritalama Sistemi - Geliştirme Kuralları
+# ============================================================================
+# Project: YM3XBA - Electronic Warfare System (EW)
+# Repository: https://github.com/ahmet-alp-colak/YM3XBA
+# Language: C++17
+# Hardware: HackRF One SDR (1 MHz - 6 GHz, 20 MSPS)
+# Architecture: Multi-threaded ED (Electronic Support) + ET (Electronic Attack) Pipelines
+# ============================================================================
+
+# ============================================================================
+# 1. PROJECT ARCHITECTURE AND STRUCTURE
+# ============================================================================
+
+## 1.1 System Overview
+- This is a **dual-pipeline Electronic Warfare system**:
+  - **ED Pipeline (Electronic Support)**: Signal detection, parameter extraction, monitoring, direction finding, geolocation
+  - **ET Pipeline (Electronic Attack)**: Jamming, spoofing, deception operations
+- The system operates in **real-time** with **multi-threaded** processing
+- All modules are **independent libraries** that can be integrated together
+- Hardware: HackRF One SDR with 4-antenna circular array for direction finding
+
+## 1.2 Module Structure
+The project is organized into modules following this pattern:
+```
+4.X_ModuleName/
+├── include/               # Public header files (.hpp)
+│   ├── DataStructures.hpp # Module-specific data structures
+│   ├── ModuleEngine.hpp   # Core processing engine
+│   └── ModulePipeline.hpp # Thread-safe pipeline orchestrator
+├── src/                   # Implementation files (.cpp)
+│   ├── ModuleEngine.cpp
+│   └── ModulePipeline.cpp
+├── examples/              # Example usage programs
+│   └── example_usage.cpp
+├── CMakeLists.txt         # Build configuration
+├── README.md              # Module documentation
+├── MODULE_SUMMARY.md      # Technical summary (if exists)
+├── NASIL_CALISTIRILIR.md  # How to run (Turkish)
+└── *.txt                  # Technical specifications
+```
+
+## 1.3 Existing Modules Status
+- **4.1 Sinyal Tespiti**: Signal detection (partial implementation, SinyalTespit.cpp exists)
+- **4.2 Parametre Çıkarımı**: ✅ **PRODUCTION READY** - Hybrid AI+DSP parameter extraction
+- **4.3 Sinyal İzleme-Dinleme**: ✅ **PRODUCTION READY** - Signal monitoring and demodulation
+- **4.4 Yön Bulma (DF)**: ✅ **PRODUCTION READY** - Direction finding with pseudo-Doppler
+- **4.5 Konum Belirleme**: Geolocation (specification only, needs implementation)
+- **5.1-5.4 ET Modules**: Electronic attack modules (specifications exist, need implementation)
+
+## 1.4 Module Dependencies
+```
+4.1 (Detection) → 4.2 (Parameter Extraction) → 4.3 (Monitoring) → 4.4 (Direction Finding) → 4.5 (Geolocation)
+                                                                  ↓
+                                              5.X (Electronic Attack Modules)
+```
+
+# ============================================================================
+# 2. C++ STANDARDS AND CODING CONVENTIONS
+# ============================================================================
+
+## 2.1 Language Standard
+- **ALWAYS use C++17** (CMAKE_CXX_STANDARD 17)
+- **NEVER use C++20/23 features** (project compatibility requirement)
+- Standard library only, no Boost unless absolutely necessary
+
+## 2.2 Compiler Requirements
+- **Primary compiler**: GCC 7+ or Clang 5+
+- **Compiler flags (mandatory)**:
+  ```cmake
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+  set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native")
+  ```
+- All code must compile **without warnings** on `-Wall -Wextra -Wpedantic`
+
+## 2.3 Naming Conventions
+- **Namespaces**: `CognitiveRF`, `CognitiveRF::ModuleName`
+  ```cpp
+  namespace CognitiveRF {
+  namespace SignalMonitoring {
+      // code here
+  }}
+  ```
+- **Classes**: PascalCase (e.g., `ModulationClassifier`, `DirectionFindingEngine`)
+- **Functions/Methods**: camelCase (e.g., `processBuffer`, `computeRSSI`)
+- **Variables**: snake_case (e.g., `sample_rate_hz`, `center_freq`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_BUFFER_SIZE`)
+- **Member variables**: snake_case with trailing underscore (e.g., `sample_rate_hz_`, `running_`)
+- **Enums**: PascalCase with UPPER_CASE values
+  ```cpp
+  enum class ModulationType : uint8_t {
+      UNKNOWN = 0,
+      BPSK,
+      QPSK
+  };
+  ```
+
+## 2.4 File Organization
+- **Header files**: `.hpp` extension (NOT `.h`)
+- **Implementation files**: `.cpp` extension
+- **Include guards**: Use `#ifndef/#define/#endif` (NOT `#pragma once`)
+  ```cpp
+  #ifndef MODULE_NAME_HPP
+  #define MODULE_NAME_HPP
+  // content
+  #endif
+  ```
+- **Header order**:
+  1. Own header (for .cpp files)
+  2. C++ standard library headers
+  3. Third-party library headers
+  4. Project headers
+
+# ============================================================================
+# 3. DEPENDENCIES AND BUILD SYSTEM
+# ============================================================================
+
+## 3.1 Required Dependencies
+- **Threads**: `find_package(Threads REQUIRED)` - For multi-threading
+- **ONNX Runtime**: AI modulation classification (4.2 module)
+- **SQLite3**: Persistence logging (4.2 module)
+- **FFTW3**: Optional, for FFT operations (Welch PSD)
+- **liquid-dsp**: Optional, for production demodulation
+- **libhackrf**: For SDR hardware communication
+
+## 3.2 CMake Build Structure
+Every module MUST have a CMakeLists.txt with:
+```cmake
+cmake_minimum_required(VERSION 3.15)
+project(CognitiveRF_ModuleName VERSION 1.0.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Compiler flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -march=native")
+
+# Dependencies
+find_package(Threads REQUIRED)
+# ... other dependencies
+
+# Source files
+set(HEADER_FILES include/*.hpp)
+set(SOURCE_FILES src/*.cpp)
+
+# Library target
+add_library(${PROJECT_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES})
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(${PROJECT_NAME} PUBLIC Threads::Threads)
+
+# Example executable (optional)
+option(BUILD_EXAMPLES "Build example programs" ON)
+if(BUILD_EXAMPLES)
+    add_executable(example_usage examples/example_usage.cpp)
+    target_link_libraries(example_usage PRIVATE ${PROJECT_NAME})
+endif()
+```
+
+## 3.3 Conditional Compilation
+Use preprocessor definitions for optional dependencies:
+```cpp
+#ifdef ONNXRUNTIME_AVAILABLE
+    // ONNX-specific code
+#endif
+
+#ifdef USE_LIQUID_DSP
+    // liquid-dsp code
+#endif
+```
+
+# ============================================================================
+# 4. DATA STRUCTURES AND TYPES
+# ============================================================================
+
+## 4.1 Standard Data Structures
+Every module MUST have a `DataStructures.hpp` file defining:
+- **Enums**: Signal classification (ModulationType, ProtocolType, SignalClass)
+- **Structs**: Data containers with clear member documentation
+- **Type aliases**: For clarity (e.g., `using IQSample = std::complex<float>`)
+
+## 4.2 Core Data Types
+- **Frequency**: `uint64_t` or `double` in Hz (NOT MHz/GHz)
+- **Sample rate**: `uint32_t` or `double` in samples per second
+- **Power levels**: `float` in dBm
+- **IQ samples**: `std::vector<std::complex<float>>`
+- **Timestamps**: `uint64_t` in milliseconds or nanoseconds
+- **Angles**: `float` or `double` in degrees (NOT radians in public API)
+
+## 4.3 Configuration Structures
+Use configuration structs with sensible defaults:
+```cpp
+struct PipelineConfig {
+    double sample_rate_hz = 20e6;
+    float noise_floor_dbm = -100.0f;
+    bool enable_tracking = true;
+    // ... other options
+};
+```
+
+# ============================================================================
+# 5. THREADING AND CONCURRENCY
+# ============================================================================
+
+## 5.1 Thread-Safe Queue Pattern
+**MANDATORY** for all pipeline modules:
+```cpp
+template<typename T>
+class ThreadSafeQueue {
+private:
+    std::queue<T> queue_;
+    mutable std::mutex mutex_;
+    std::condition_variable cond_var_;
+    bool shutdown_ = false;
+
+public:
+    void push(const T& item);
+    bool pop(T& item);  // Blocking
+    bool try_pop(T& item);  // Non-blocking
+    void shutdown();
+};
+```
+
+## 5.2 Pipeline Pattern
+All processing modules MUST follow this pattern:
+```cpp
+class ModulePipeline {
+public:
+    explicit ModulePipeline(const PipelineConfig& config);
+    void start();  // Start processing thread
+    void stop();   // Stop gracefully
+    bool submitData(const InputData& data);  // Thread-safe input
+    bool getResult(OutputData& result);      // Thread-safe output
+    void setResultCallback(std::function<void(const OutputData&)> callback);
+
+private:
+    void processingLoop();  // Main thread function
+    std::atomic<bool> running_{false};
+    std::thread processing_thread_;
+    ThreadSafeQueue<InputData> input_queue_;
+    ThreadSafeQueue<OutputData> output_queue_;
+};
+```
+
+## 5.3 Thread Safety Rules
+- **ALWAYS** use `std::atomic<bool>` for state flags (e.g., `running_`, `shutdown_`)
+- **ALWAYS** use `std::mutex` to protect shared data
+- **NEVER** use raw mutex locks, use RAII (`std::lock_guard`, `std::unique_lock`)
+- **ALWAYS** use condition variables for efficient blocking waits
+- For HackRF state management, use `std::atomic::compare_exchange_strong` to prevent race conditions
+
+## 5.4 Threading Model
+Standard threading architecture:
+- **Thread-1 (Hardware Sweep)**: HackRF RX Capture + Queue Push
+- **Thread-2 (DSP Engine)**: Queue Pop + Signal Processing + GMM
+- **Thread-3 (Tracking)**: Signal tracking + CFO correction
+- **Thread-4 (Direction Finding)**: RF switch control + AoA calculation
+- **Thread-5 (Geo-Location)**: Cross-station data fusion
+- **Thread-6 (AI Inference)**: ONNX modulation classification
+- **Thread-7 (Demodulation)**: liquid-dsp processing
+- **Thread-8 (UI & Logging)**: Visualization and database
+
+# ============================================================================
+# 6. SIGNAL PROCESSING ALGORITHMS
+# ============================================================================
+
+## 6.1 Welch PSD Implementation
+- **Window function**: Hamming window
+- **Overlap**: 50%
+- **FFT size**: 1024 or 2048
+- **Library**: FFTW3 (if available) or fallback FFT
+```cpp
+// Welch PSD formula:
+// P_Welch(k) = (1/M) * sum_{m=0}^{M-1} |FFT{x_m(n) * w(n)}|^2
+```
+
+## 6.2 Kalman Filter for CFO Tracking
+State vector: `[CFO, CFO_rate]`
+```cpp
+// Predict:
+// X_predict(k) = A * X(k-1)
+// P_predict(k) = A * P(k-1) * A^T + Q
+
+// Update:
+// K(k) = P_predict(k) * H^T * [H * P_predict(k) * H^T + R]^-1
+// X(k) = X_predict(k) + K(k) * [Z(k) - H * X_predict(k)]
+// P(k) = [I - K(k) * H] * P_predict(k)
+```
+
+## 6.3 Frequency Correction
+**Complex frequency shift formula**:
+```cpp
+x_corrected(n) = x_raw(n) * exp(-j * 2 * PI * CFO * n / SAMPLE_RATE)
+```
+
+## 6.4 FM Demodulation (Frequency Discriminator)
+```cpp
+// Phase difference method:
+// phase[n] = atan2(imag(x[n] * conj(x[n-1])), real(x[n] * conj(x[n-1])))
+// audio[n] = phase[n] / (2 * PI)
+```
+
+## 6.5 AM Demodulation (Envelope Detector)
+```cpp
+// y[n] = sqrt(I^2[n] + Q^2[n])
+```
+
+# ============================================================================
+# 7. AI/ML INTEGRATION (Module 4.2)
+# ============================================================================
+
+## 7.1 ONNX Runtime Usage
+- **Model format**: ONNX (.onnx)
+- **Inference library**: ONNX Runtime C++ API
+- **Input tensor**: `float[2][1024]` (I and Q channels)
+- **Output**: 14-class modulation classification
+
+## 7.2 IQ Preprocessing Pipeline
+**MANDATORY** preprocessing before AI inference:
+```cpp
+// Step A: DC Removal
+I_new = I - mean(I);
+Q_new = Q - mean(Q);
+
+// Step B: Local Z-Score Normalization
+I_norm = (I_new - mean(I_new)) / (std(I_new) + 1e-8);
+Q_norm = (Q_new - mean(Q_new)) / (std(Q_new) + 1e-8);
+
+// Step C: Optional Clipping
+clip(value, -4.0f, 4.0f);
+```
+
+## 7.3 Temporal Voting
+Implement N-frame majority voting:
+```cpp
+std::deque<ModulationType> voting_history_;
+// Store last N predictions
+// Return most frequent prediction as final result
+// Compute confidence: confidence = votes / total_votes
+```
+
+## 7.4 Model Performance Expectations
+- SNR > 10 dB: ~95% accuracy
+- SNR 0-10 dB: ~87% accuracy
+- SNR -5-0 dB: ~63% accuracy
+- SNR < -5 dB: ~21% accuracy
+
+# ============================================================================
+# 8. HARDWARE INTERFACE (HackRF One)
+# ============================================================================
+
+## 8.1 HackRF Specifications
+- **Frequency range**: 1 MHz - 6 GHz
+- **Sample rate**: 20 MSPS (20e6 Hz)
+- **Bandwidth**: 20 MHz
+- **Mode**: Half-duplex (NOT full-duplex)
+- **Library**: libhackrf
+
+## 8.2 Hardware State Management
+Use atomic state machine for RX/TX switching:
+```cpp
+enum class HardwareState {
+    IDLE,
+    SENSING,  // RX mode
+    JAMMING,  // TX mode
+    SPOOFING  // TX mode (GNSS)
+};
+
+std::atomic<HardwareState> hw_state_{HardwareState::IDLE};
+
+// Safe state transition:
+HardwareState expected = HardwareState::IDLE;
+hw_state_.compare_exchange_strong(expected, HardwareState::SENSING);
+```
+
+## 8.3 Frequency Sweep Parameters
+- **Start frequency**: 1 MHz (1e6 Hz)
+- **End frequency**: 6 GHz (6e9 Hz)
+- **Step**: 10 MHz (10e6 Hz)
+- **Settling time**: 40 ms (for PLL lock)
+
+## 8.4 Gain Settings
+- **LNA gain**: 24-32 dB
+- **VGA gain**: 16-24 dB
+- **AMP**: OFF (for RX), ON (for TX if needed)
+
+# ============================================================================
+# 9. DIRECTION FINDING (Module 4.4)
+# ============================================================================
+
+## 9.1 Antenna Array Configuration
+- **Type**: 4-element circular array
+- **Spacing**: λ/2 at target frequency
+- **Switching pattern**: [0, 1, 2, 3, 0, 1, 2, 3, ...]
+- **Switching rate**: kHz range
+
+## 9.2 Pseudo-Doppler Algorithm
+```cpp
+// FM discriminator demodulation
+phase[n] = atan2(imag(x[n] * conj(x[n-1])), real(x[n] * conj(x[n-1])));
+
+// Phase unwrapping
+phase_unwrapped = unwrapPhase(phase, prev_phase);
+
+// Phase to AoA conversion (4-element array)
+AoA = phase_difference * (90.0 / (2 * PI));  // degrees
+```
+
+## 9.3 Performance Requirements
+- **RMS accuracy**: ±10° (target)
+- **AoA range**: -180° to +180°
+- **Confidence**: SNR-based (0.0 - 1.0)
+
+# ============================================================================
+# 10. GEOLOCATION (Module 4.5)
+# ============================================================================
+
+## 10.1 Cross-Fixing Method
+- **Minimum stations**: 2
+- **Algorithm**: Least Squares optimization
+- **Input**: AoA from each station + GPS coordinates
+- **Output**: Target latitude/longitude + error ellipse
+
+## 10.2 Data Synchronization
+- **Time sync**: GPS/GNSS timestamps (ms precision)
+- **Data link**: Wireless/network between stations
+- **Format**: Compact data packets with AoA + timestamp + station ID
+
+# ============================================================================
+# 11. ELECTRONIC ATTACK MODULES (5.1-5.4)
+# ============================================================================
+
+## 11.1 Spot Jamming (5.1)
+- **Type**: Continuous wave (CW) or Gaussian noise
+- **Bandwidth**: Match target signal
+- **Power**: Maximize SNR disruption
+- **Frequency**: 0-3 GHz
+
+## 11.2 Look-Through Jamming (5.2)
+- **Mode**: Time-Division Duplex (TDD)
+- **RX window**: ~10 ms (sensing)
+- **TX window**: 50-100 ms (jamming)
+- **State machine**: IDLE ↔ SENSING ↔ JAMMING
+
+## 11.3 GNSS Spoofing (5.4)
+- **Services**: GPS L1 (1575.42 MHz), GLONASS L1, Galileo E1
+- **Method**: Real-time I/Q synthesis + power-managed alignment
+- **Power strategy**: Start low, gradually increase
+- **Doppler**: Apply frequency shift for motion simulation
+
+# ============================================================================
+# 12. ERROR HANDLING AND LOGGING
+# ============================================================================
+
+## 12.1 Error Handling Strategy
+- Use **exceptions** for unrecoverable errors
+- Use **return codes** (bool/int) for operational errors
+- **NEVER** use exceptions in real-time processing loops
+- Provide detailed error messages with context
+
+## 12.2 Logging Levels
+```cpp
+enum class LogLevel {
+    DEBUG,    // Verbose debugging
+    INFO,     // General information
+    WARNING,  // Potential issues
+    ERROR,    // Recoverable errors
+    CRITICAL  // System failure
+};
+```
+
+## 12.3 Performance Logging
+Track and log:
+- Processing time per signal (ms)
+- Queue sizes (input/output)
+- Thread utilization
+- Memory usage
+- Hardware state transitions
+
+# ============================================================================
+# 13. DOCUMENTATION STANDARDS
+# ============================================================================
+
+## 13.1 File Headers
+Every file MUST have:
+```cpp
+/**
+ * @file FileName.hpp
+ * @brief Brief description
+ * @details Detailed description
+ * 
+ * System: Bilişsel RF Spektrum Haritalama Sistemi
+ * Module: 4.X ModuleName
+ * 
+ * @author [Your Name]
+ * @date YYYY-MM-DD
+ */
+```
+
+## 13.2 Function Documentation
+Use Doxygen-style comments:
+```cpp
+/**
+ * @brief Brief function description
+ * @param param_name Parameter description
+ * @return Return value description
+ * @throws ExceptionType When this exception is thrown
+ * 
+ * @details Detailed algorithm explanation if needed
+ */
+```
+
+## 13.3 README.md Structure
+Every module MUST have README.md with:
+1. Overview (Turkish + English)
+2. Features
+3. Architecture diagram
+4. Module structure
+5. Installation instructions
+6. Usage examples
+7. Performance metrics
+8. Dependencies
+9. References
+
+## 13.4 Technical Specifications
+Keep all .txt files (e.g., 4.2_ParametreCikarimi.txt) for algorithm details:
+- Mathematical formulas
+- Design rationale
+- Alternative methods comparison
+- Performance analysis
+
+# ============================================================================
+# 14. TESTING AND VALIDATION
+# ============================================================================
+
+## 14.1 Unit Testing
+- Test each module independently
+- Use synthetic IQ data for testing
+- Test edge cases (low SNR, high CFO, etc.)
+- Validate against known signals
+
+## 14.2 Integration Testing
+- Test module-to-module data flow
+- Verify thread safety under load
+- Test with real HackRF hardware
+- Measure end-to-end latency
+
+## 14.3 Performance Benchmarks
+Target processing times:
+- CFO correction: <1 ms (1024 samples)
+- DSP measurements: <2 ms
+- AI inference: <50 ms (CPU), <5 ms (GPU)
+- FM/AM demodulation: <5 ms
+- Direction finding: <5 ms
+- Total pipeline: <100 ms per signal
+
+# ============================================================================
+# 15. MEMORY MANAGEMENT
+# ============================================================================
+
+## 15.1 Buffer Allocation
+- Pre-allocate buffers where possible
+- Use `std::vector::reserve()` for known sizes
+- Avoid dynamic allocation in real-time loops
+- Use lock-free ring buffers (SPSC) for high-throughput data
+
+## 15.2 Memory Limits
+- Pipeline queue size: ~10 MB configurable
+- IQ buffer: Match SDR sample rate (e.g., 1024-8192 samples)
+- Keep total memory usage under 500 MB per module
+
+## 15.3 Smart Pointers
+- Use `std::unique_ptr` for ownership
+- Use `std::shared_ptr` only when needed
+- **NEVER** use raw pointers for owned resources
+- Use `std::weak_ptr` for breaking cycles
+
+# ============================================================================
+# 16. PROTOCOL ANALYSIS (Module 4.2)
+# ============================================================================
+
+## 16.1 Decision Tree Rules
+```
+IF modulation == 4FSK AND class == BURST AND bandwidth ~= 12.5 kHz:
+    protocol = DMR, multiplexing = TDMA
+
+IF modulation == GMSK AND class == BURST:
+    protocol = GSM, multiplexing = TDMA
+
+IF modulation == QPSK AND class == CONTINUOUS AND bandwidth ~= 25 kHz:
+    protocol = TETRA, multiplexing = FDMA
+```
+
+## 16.2 FHSS Detection
+Criteria:
+- `hop_count >= 5`
+- `power_variance < 3 dB`
+- Consistent hop rate
+- Signal class = BURST
+
+# ============================================================================
+# 17. DATABASE AND PERSISTENCE (Module 4.2)
+# ============================================================================
+
+## 17.1 SQLite Schema
+```sql
+CREATE TABLE signals (
+    timestamp INTEGER,
+    frequency REAL,
+    bandwidth REAL,
+    modulation TEXT,
+    protocol TEXT,
+    rssi_dbm REAL,
+    snr_db REAL,
+    aoa_degrees REAL,
+    target_lat REAL,
+    target_lon REAL,
+    payload TEXT
+);
+```
+
+## 17.2 Logging Strategy
+- Use **WAL mode** for SQLite (`PRAGMA journal_mode=WAL`)
+- **Batch insertions** (100+ records at once)
+- **Asynchronous logging** thread
+- Support CSV export for analysis
+
+# ============================================================================
+# 18. CODE REVIEW CHECKLIST
+# ============================================================================
+
+Before committing code, verify:
+- [ ] Compiles with `-Wall -Wextra -Wpedantic` without warnings
+- [ ] Follows naming conventions (PascalCase classes, camelCase functions, snake_case variables)
+- [ ] Uses C++17 standard (no C++20/23 features)
+- [ ] Thread-safe if used in multi-threaded context
+- [ ] Documented with Doxygen comments
+- [ ] Memory leaks checked (valgrind/sanitizers)
+- [ ] Performance measured for real-time components
+- [ ] Example usage provided
+- [ ] CMakeLists.txt updated if needed
+- [ ] README.md updated with new features
+
+# ============================================================================
+# 19. DEVELOPMENT WORKFLOW
+# ============================================================================
+
+## 19.1 When Creating New Module
+1. Create directory structure: `include/`, `src/`, `examples/`
+2. Copy CMakeLists.txt template from existing module
+3. Create `DataStructures.hpp` with module-specific types
+4. Implement core engine class
+5. Implement pipeline class with thread-safe queues
+6. Write example usage program
+7. Create comprehensive README.md
+8. Write technical specification .txt file
+9. Test with synthetic and real data
+
+## 19.2 When Modifying Existing Module
+1. Read module's .txt specification file first
+2. Understand the algorithm and architecture
+3. Maintain backward compatibility with data structures
+4. Update documentation (README.md, inline comments)
+5. Update CHANGELOG if exists
+6. Test against existing examples
+
+## 19.3 Git Commit Messages
+Use conventional commit format:
+```
+<type>(<module>): <description>
+
+[optional body]
+
+[optional footer]
+```
+Types: feat, fix, docs, style, refactor, test, chore
+
+# ============================================================================
+# 20. PERFORMANCE OPTIMIZATION
+# ============================================================================
+
+## 20.1 Hot Path Optimization
+- Use `-O3 -march=native` for release builds
+- Profile with `perf` or `gprof`
+- Avoid virtual function calls in tight loops
+- Use `inline` for small, frequently called functions
+- Consider SIMD vectorization for DSP operations
+
+## 20.2 Cache Efficiency
+- Keep hot data structures small and contiguous
+- Use `std::array` instead of `std::vector` for fixed sizes
+- Align data structures to cache line size (64 bytes)
+- Access memory sequentially when possible
+
+## 20.3 Compiler Hints
+```cpp
+[[likely]]    // For hot paths
+[[unlikely]]  // For error paths
+__builtin_expect()  // For branch prediction
+__attribute__((hot))  // For hot functions
+```
+
+# ============================================================================
+# 21. SECURITY CONSIDERATIONS
+# ============================================================================
+
+## 21.1 Input Validation
+- Validate all external inputs (file paths, network data)
+- Check array bounds before access
+- Validate frequency ranges (1 MHz - 6 GHz)
+- Sanitize user-provided configuration values
+
+## 21.2 Buffer Overflow Prevention
+- Use `std::vector` instead of C arrays
+- Use `std::string` instead of char arrays
+- Use `.at()` instead of `[]` when bounds checking is critical
+- Enable stack protection (`-fstack-protector-strong`)
+
+# ============================================================================
+# 22. MATHEMATICAL CONSTANTS AND UNITS
+# ============================================================================
+
+## 22.1 Constants
+```cpp
+constexpr double PI = 3.14159265358979323846;
+constexpr double TWO_PI = 2.0 * PI;
+constexpr double SPEED_OF_LIGHT = 299792458.0;  // m/s
+```
+
+## 22.2 Unit Conversions
+```cpp
+// Power
+dBm = 10.0 * log10(power_watts * 1000.0);
+power_watts = pow(10.0, dBm / 10.0) / 1000.0;
+
+// Frequency
+hz_to_mhz = hz / 1e6;
+mhz_to_hz = mhz * 1e6;
+
+// Angle
+deg_to_rad = deg * (PI / 180.0);
+rad_to_deg = rad * (180.0 / PI);
+```
+
+# ============================================================================
+# 23. SPECIAL INSTRUCTIONS FOR CLINE AI
+# ============================================================================
+
+## When asked to create a new module:
+1. Always reference similar existing modules (4.2, 4.3, 4.4) as templates
+2. Create complete file structure (include/, src/, examples/, CMakeLists.txt, README.md)
+3. Follow the exact CMakeLists.txt pattern from existing modules
+4. Use the ThreadSafeQueue + Pipeline pattern for async processing
+5. Create comprehensive DataStructures.hpp first
+6. Implement the core engine, then the pipeline wrapper
+7. Write example usage that demonstrates all features
+
+## When asked to implement algorithms:
+1. Check the corresponding .txt file for mathematical formulas
+2. Implement exactly as specified in documentation
+3. Add extensive inline comments explaining the algorithm
+4. Use variable names that match the mathematical notation
+5. Validate against known test cases
+
+## When debugging:
+1. Check thread safety first (race conditions, deadlocks)
+2. Verify queue sizes and potential blocking
+3. Check for memory leaks with valgrind
+4. Verify hardware state transitions (IDLE/SENSING/JAMMING)
+5. Add detailed logging to diagnose issues
+
+## When optimizing:
+1. Profile first, optimize second
+2. Focus on the processing loop (hot path)
+3. Don't sacrifice readability for minor gains
+4. Document any non-obvious optimizations
+
+# ============================================================================
+# END OF CLINE RULES
+# ============================================================================
+# These rules are MANDATORY for all development work on this project.
+# When in doubt, refer to existing modules (4.2, 4.3, 4.4) as reference.
+# All technical specifications in .txt files are authoritative.
+# ============================================================================
