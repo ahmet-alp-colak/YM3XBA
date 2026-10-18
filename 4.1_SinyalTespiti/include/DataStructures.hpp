@@ -18,6 +18,7 @@
 #include <string>
 #include <cstdint>
 #include <deque>
+#include <array>
 
 namespace CognitiveRF {
 namespace SignalDetection {
@@ -48,7 +49,8 @@ constexpr double EPS = 1e-12;
 enum class SignalClass : uint8_t {
     NOISE = 0,        ///< Background noise or known RF environment
     BURST = 1,        ///< Transient/bursty signal (Wi-Fi, Bluetooth, FHSS)
-    CONTINUOUS = 2    ///< Persistent continuous signal (broadcast, jamming)
+    CONTINUOUS = 2,   ///< Persistent continuous signal (broadcast, jamming)
+    SIGNAL = 3        ///< Generic signal detected (used by GMM before temporal tracking)
 };
 
 /**
@@ -104,6 +106,88 @@ struct SignalDetectionConfig {
 };
 
 // ============================================================================
+// PIPELINE & FEATURE STRUCTURES
+// ============================================================================
+
+/**
+ * @struct FeatureVector
+ * @brief 8-dimensional scale-invariant feature vector for GMM classification
+ */
+struct FeatureVector {
+    double max_power = 0.0;                 
+    double mean_power = 0.0;                
+    double variance = 0.0;                  
+    double skewness = 0.0;                  
+    double kurtosis = 0.0;                  
+    double energy_ratio = 0.0;              
+    double peak_to_avg_ratio = 0.0;         
+    double spectral_flatness = 0.0;         
+    double variance_of_variances = 0.0;     
+    double gaussian_boundary_quality = 0.0; 
+};
+
+/**
+ * @struct ClassificationResult
+ * @brief Output of the GMM classifier
+ */
+struct ClassificationResult {
+    SignalClass signal_class = SignalClass::NOISE; 
+    double likelihood = 0.0;                       
+};
+
+/**
+ * @struct GMMParameters
+ * @brief Gaussian Mixture Model internal parameters
+ */
+struct GMMParameters {
+    std::array<std::array<double, 8>, 2> means;     
+    std::array<std::array<double, 8>, 2> variances; 
+    std::array<double, 2> weights;                  
+};
+
+/**
+ * @struct DetectionConfig
+ * @brief Configuration parameters specifically for the SignalDetectionEngine
+ */
+struct DetectionConfig {
+    int fft_size = 1024;                          
+    int overlap_size = 512;                       
+    double default_threshold = 0.5;               
+    bool enable_temporal_filtering = true;        
+    int gmm_max_iterations = 100;                 
+    double gmm_convergence_threshold = 1e-6;      
+    size_t temporal_history_size = 100;           
+    uint64_t state_cleanup_threshold_sec = 300;   
+    double detection_n_sigma = 3.0;               
+};
+
+/**
+ * @struct DetectionInput
+ * @brief Input payload for the signal detection pipeline
+ */
+struct DetectionInput {
+    FrequencyHz center_frequency_hz = 0;          
+    uint32_t sample_rate_hz = 0;                  
+    std::vector<IQSample> iq_samples;             
+};
+
+/**
+ * @struct DetectionOutput
+ * @brief Output payload from the signal detection pipeline
+ */
+struct DetectionOutput {
+    FrequencyHz center_frequency_hz = 0;          
+    uint32_t sample_rate_hz = 0;                  
+    uint64_t timestamp_ms = 0;                    
+    SignalClass signal_class = SignalClass::NOISE;
+    double raw_likelihood = 0.0;                  
+    double filtered_likelihood = 0.0;             
+    double adaptive_threshold = 0.0;              
+    FeatureVector features;                       
+    bool is_classifier_trained = false;           
+};
+
+// ============================================================================
 // DATA BUFFER STRUCTURES
 // ============================================================================
 
@@ -138,6 +222,7 @@ struct TemporalState {
     double adaptive_noise_floor = 0.0;           ///< Median-based noise floor
     double adaptive_noise_sigma = 1.0;           ///< MAD-based noise variance
     std::deque<double> likelihood_history;       ///< Log-likelihood history
+    uint64_t last_update_timestamp_ms = 0;       ///< Last update time
     
     /**
      * @brief Update likelihood history buffer
@@ -217,6 +302,7 @@ inline const char* signalClassToString(SignalClass signal_class) {
         case SignalClass::NOISE:      return "NOISE";
         case SignalClass::BURST:      return "BURST";
         case SignalClass::CONTINUOUS: return "CONTINUOUS";
+        case SignalClass::SIGNAL:     return "SIGNAL";
         default:                      return "UNKNOWN";
     }
 }
